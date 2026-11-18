@@ -99,7 +99,7 @@ export function ReglagesNotifications({ moi }: { moi: Profil }) {
         <span>
           <span className="font-semibold">le dimanche</span>
           <br />
-          <span className="text-encre/60">12h : pense à loguer ta semaine · 18h : les résultats 🎁</span>
+          <span className="text-encre/60">12h : pense à loguer ta semaine · 18h : les résultats 🏅</span>
         </span>
         <input type="checkbox" className="size-6 accent-orange" checked={moi.notif_sunday} onChange={(e) => enregistrer({ notif_sunday: e.target.checked })} />
       </label>

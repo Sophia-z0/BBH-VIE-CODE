@@ -20,7 +20,7 @@ export function EcranPodium() {
   const [fete, setFete] = useState(0)
 
   if (erreur) return <p className="mt-10 rounded-xl bg-red-100 p-4 text-red-800">{erreur}</p>
-  if (!podium) return <p className="mt-20 animate-pulse text-center text-4xl">🎁</p>
+  if (!podium) return <p className="mt-20 animate-pulse text-center text-4xl">🏅</p>
 
   function ouvrir() {
     marquerRevealOuvert()
@@ -45,7 +45,7 @@ export function EcranPodium() {
           <p className="text-encre/60">Le podium s'anime dès que ton ou ta partenaire a rejoint le foyer (code dans réglages).</p>
         ) : !ouvert ? (
           <div className="flex flex-col items-center gap-4 rounded-3xl bg-white p-8 text-center shadow-sm">
-            <span className="animate-bounce text-7xl">🎁</span>
+            <span className="animate-bounce text-7xl">🏅</span>
             <p className="text-lg font-semibold">Les résultats de la semaine sont arrivés !</p>
             <Bouton type="button" onClick={ouvrir}>
               ouvrir les résultats
@@ -196,7 +196,7 @@ function PodiumCoeurs({ resultat, periode }: { resultat: ResultatCoeurs; periode
 function MesBadges({ badges }: { badges: Badge[] }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-2xl font-bold">🏅 mes badges</h2>
+      <h2 className="text-2xl font-bold">🎖️ mes badges</h2>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
         {badges.map((b) => (
           <div

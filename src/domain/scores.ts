@@ -172,7 +172,7 @@ export function mesBadges(logs: LogTache[], depenses: Depense[], cadeaux: Cadeau
     { emoji: '🌟', titre: '200 étoiles', obtenu: etoiles >= 200 },
     { emoji: '💫', titre: '500 étoiles', obtenu: etoiles >= 500 },
     { emoji: '🔥', titre: '7 jours d’affilée', obtenu: meilleureSerie >= 7 },
-    { emoji: '🏅', titre: '30 jours d’affilée', obtenu: meilleureSerie >= 30 },
+    { emoji: '💎', titre: '30 jours d’affilée', obtenu: meilleureSerie >= 30 },
     { emoji: '🎨', titre: 'touche-à-tout (5 groupes)', obtenu: groupes.size >= 5 },
     { emoji: '👫', titre: 'travail d’équipe', obtenu: logs.some((l) => l.shared) },
     { emoji: '💖', titre: 'première dépense', obtenu: depenses.length >= 1 },

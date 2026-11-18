@@ -131,7 +131,7 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
           )}
           {autreMasque && (
             <li className="text-center text-sm text-encre/50">
-              🎁 Ce qu'a fait {autre.display_name} sera révélé dimanche à 18h.
+              🏅 Ce qu'a fait {autre.display_name} sera révélé dimanche à 18h.
             </li>
           )}
         </ul>

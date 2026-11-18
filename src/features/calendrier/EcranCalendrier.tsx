@@ -135,7 +135,7 @@ export function EcranCalendrier() {
                   if (p.id !== moi.id && !revelee) {
                     return (
                       <span key={p.id} className="text-encre/50">
-                        <span style={{ color: p.color }}>●</span> 🎁 révélé dimanche 18h
+                        <span style={{ color: p.color }}>●</span> 🏅 révélé dimanche 18h
                       </span>
                     )
                   }

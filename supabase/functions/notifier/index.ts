@@ -91,7 +91,7 @@ async function rappelDuJour(profil: Profil, minuit: Date): Promise<Message | nul
 
 const RAPPEL_DIMANCHE: Message = {
   title: 'Dernière ligne droite 🏁',
-  body: 'As-tu pensé à loguer tes tâches et dépenses de la semaine ? Résultats à 18h 🎁',
+  body: 'As-tu pensé à loguer tes tâches et dépenses de la semaine ? Résultats à 18h 🏅',
   url: '#/',
 }
 
@@ -102,14 +102,14 @@ async function annonceDuDimanche(householdId: string, finSemaine: Date): Promise
   if (gagnants.length === 1) {
     return {
       title: `👑 ${gagnants[0]} remporte la semaine !`,
-      body: 'Bravo, et merci à vous deux pour tout ce que vous faites 💖 Viens ouvrir les résultats 🎁',
+      body: 'Bravo, et merci à vous deux pour tout ce que vous faites 💖 Viens ouvrir les résultats 🏅',
       url: '#/podium',
     }
   }
   if (gagnants.length > 1) {
-    return { title: '🎉 Match nul !', body: 'Bravo à vous deux, quelle équipe ! Viens ouvrir les résultats 🎁', url: '#/podium' }
+    return { title: '🎉 Match nul !', body: 'Bravo à vous deux, quelle équipe ! Viens ouvrir les résultats 🏅', url: '#/podium' }
   }
-  return { title: '🎁 Les résultats de la semaine sont là', body: 'Une nouvelle semaine commence, à vous de jouer ✨', url: '#/podium' }
+  return { title: '🏅 Les résultats de la semaine sont là', body: 'Une nouvelle semaine commence, à vous de jouer ✨', url: '#/podium' }
 }
 
 async function envoyer(idPersonne: string, message: Message): Promise<number> {
