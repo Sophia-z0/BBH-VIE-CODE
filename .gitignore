@@ -10,3 +10,6 @@ supabase/local/
 
 # Service worker généré par « npm run dev »
 dev-dist/
+
+# Brief du projet : reste en local (prénoms, détails)
+BRIEF-BBH-VIE.txt
