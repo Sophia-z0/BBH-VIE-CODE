@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+/* Palette BBH VIE : chaude et joyeuse. Les couleurs des deux personnes seront réglables. */
+@theme {
+  --color-creme: #fff7ed;
+  --color-orange: #f97316;
+  --color-rose: #ec4899;
+  --color-encre: #3b2416;
+  --font-sans: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-creme text-encre antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
