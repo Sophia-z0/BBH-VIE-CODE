@@ -1,12 +1,13 @@
 -- =====================================================================
--- BBH VIE · groupe « WC » : les tâches des WC quittent « salle de bain »
+-- BBH VIE · groupe « WC » : les tâches des WC quittent « salle de bain » et « ménage »
+-- (peut être exécutée plusieurs fois sans risque)
 -- =====================================================================
 
 -- Foyers déjà créés
 update public.tasks
 set group_name = 'WC'
-where name in ('Nettoyer les WC', 'Nettoyer le calcaire des WC')
-  and group_name = 'salle de bain';
+where name in ('Nettoyer les WC', 'Nettoyer le calcaire des WC', 'Aspirateur : toilettes')
+  and group_name in ('salle de bain', 'ménage');
 
 -- Foyers créés à partir de maintenant
 create or replace function public.seed_household(hid uuid)
@@ -23,7 +24,7 @@ as $$
     (hid, 'Aspirateur : salle à manger',                  'ménage',        '🧹', 2,  7),
     (hid, 'Aspirateur : chambre',                         'ménage',        '🧹', 2,  8),
     (hid, 'Aspirateur : entrée',                          'ménage',        '🧹', 1,  9),
-    (hid, 'Aspirateur : toilettes',                       'ménage',        '🧹', 1, 10),
+    (hid, 'Aspirateur : toilettes',                       'WC',            '🧹', 1, 10),
     (hid, 'Aspirateur : salle de bain',                   'ménage',        '🧹', 1, 11),
     (hid, 'Passer la serpillère',                         'ménage',        '🪣', 3, 12),
     (hid, 'Nettoyer les WC',                              'WC',            '🚽', 2, 13),
