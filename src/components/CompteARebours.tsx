@@ -15,10 +15,10 @@ export function CompteARebours() {
   const heures = Math.floor((reste % 86_400_000) / 3_600_000)
   const minutes = Math.floor((reste % 3_600_000) / 60_000)
 
-  return (
-    <p className="text-sm text-encre/70">
-      🎁 reveal dans {jours > 0 && `${jours} j `}
-      {heures} h {minutes} min
-    </p>
-  )
+  // Les deux plus grandes unités suffisent : « 4j et 2h », puis « 2h et 15min », puis « 15min ».
+  let delai = `${minutes}min`
+  if (jours > 0) delai = `${jours}j et ${heures}h`
+  else if (heures > 0) delai = `${heures}h et ${minutes}min`
+
+  return <p className="text-sm text-encre/70">🎉 reveal dans {delai}</p>
 }
