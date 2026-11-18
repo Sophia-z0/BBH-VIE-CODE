@@ -6,3 +6,7 @@ dist/
 
 # Secrets générés en local (clés VAPID, secret cron) : jamais dans git
 supabase/local/
+!.env.example
+
+# Service worker généré par « npm run dev »
+dev-dist/
