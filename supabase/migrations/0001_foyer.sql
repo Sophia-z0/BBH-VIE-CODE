@@ -167,6 +167,13 @@ grant execute on function public.join_household(text, text, text) to authenticat
 -- Sécurité : chaque foyer ne voit et ne modifie que ses propres données
 -- ---------------------------------------------------------------------
 
+-- Accès via l'API pour les personnes connectées (le projet n'accorde rien automatiquement) ;
+-- les règles RLS ci-dessous filtrent ensuite ligne par ligne.
+grant select, update                 on public.households         to authenticated;
+grant select, update                 on public.profiles           to authenticated;
+grant select, insert, update, delete on public.tasks              to authenticated;
+grant select, insert, update, delete on public.expense_categories to authenticated;
+
 alter table public.households         enable row level security;
 alter table public.profiles           enable row level security;
 alter table public.tasks              enable row level security;
