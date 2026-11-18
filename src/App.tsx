@@ -1,4 +1,5 @@
-import { HashRouter, Route, Routes } from 'react-router'
+import { useEffect } from 'react'
+import { HashRouter, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { BarreNavigation } from './components/BarreNavigation'
 import { CompteARebours } from './components/CompteARebours'
 import { EcranConnexion } from './features/auth/EcranConnexion'
@@ -12,6 +13,8 @@ import { EcranCategories } from './features/depenses/EcranCategories'
 import { EcranCalendrier } from './features/calendrier/EcranCalendrier'
 import { EcranStats } from './features/stats/EcranStats'
 import { EcranReglages } from './features/reglages/EcranReglages'
+import { EcranPodium } from './features/podium/EcranPodium'
+import { revealAOuvrir } from './features/podium/reveal'
 import { supabaseConfigure } from './lib/supabase'
 
 export function App() {
@@ -58,6 +61,7 @@ function Aiguillage() {
 function AppFoyer() {
   return (
     <HashRouter>
+      <OuvertureReveal />
       <header className="flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <span className="text-lg font-extrabold text-orange">BBH VIE</span>
         <CompteARebours />
@@ -72,9 +76,24 @@ function AppFoyer() {
           <Route path="/calendrier" element={<EcranCalendrier />} />
           <Route path="/stats" element={<EcranStats />} />
           <Route path="/reglages" element={<EcranReglages />} />
+          <Route path="/podium" element={<EcranPodium />} />
         </Routes>
       </main>
       <BarreNavigation />
     </HashRouter>
   )
+}
+
+/** Après le reveal du dimanche, la première ouverture de l'app mène au podium. */
+function OuvertureReveal() {
+  const naviguer = useNavigate()
+  const { pathname, search } = useLocation()
+
+  useEffect(() => {
+    // Seulement depuis l'accueil, pour ne pas détourner un lien direct (ajout rapide…).
+    if (pathname === '/' && !search && revealAOuvrir()) naviguer('/podium')
+    // Vérifié une seule fois, à l'ouverture de l'app.
+  }, [])
+
+  return null
 }

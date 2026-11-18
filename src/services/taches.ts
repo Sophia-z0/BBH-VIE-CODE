@@ -1,3 +1,4 @@
+import { toutesLesPages } from '../lib/pagination'
 import { supabase } from '../lib/supabase'
 import type { LogTache, Tache } from '../domain/types'
 
@@ -50,13 +51,15 @@ export async function mesLogsDepuis(idUtilisateur: string, debut: Date): Promise
 }
 
 /** Logs visibles (les miens, et ceux de l'autre déjà révélés) sur une période. */
-export async function logsEntre(debut: Date, fin: Date): Promise<LogTache[]> {
-  const { data, error } = await supabase
-    .from('task_logs')
-    .select(COLONNES_LOG)
-    .gte('done_at', debut.toISOString())
-    .lt('done_at', fin.toISOString())
-    .order('done_at')
-  if (error) throw error
-  return data
+export function logsEntre(debut: Date, fin: Date): Promise<LogTache[]> {
+  return toutesLesPages((de, a) =>
+    supabase
+      .from('task_logs')
+      .select(COLONNES_LOG)
+      .gte('done_at', debut.toISOString())
+      .lt('done_at', fin.toISOString())
+      .order('done_at')
+      .order('id')
+      .range(de, a),
+  )
 }

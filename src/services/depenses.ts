@@ -1,3 +1,4 @@
+import { toutesLesPages } from '../lib/pagination'
 import { supabase } from '../lib/supabase'
 import type { Cadeau, Categorie, Depense, DepenseRecurrente } from '../domain/types'
 
@@ -42,15 +43,17 @@ export async function supprimerDepense(id: string) {
 }
 
 /** Dépenses visibles (les miennes, et celles de l'autre déjà révélées) sur une période. */
-export async function depensesEntre(debut: Date, fin: Date): Promise<Depense[]> {
-  const { data, error } = await supabase
-    .from('expenses')
-    .select(COLONNES_DEPENSE)
-    .gte('spent_at', debut.toISOString())
-    .lt('spent_at', fin.toISOString())
-    .order('spent_at', { ascending: false })
-  if (error) throw error
-  return data
+export function depensesEntre(debut: Date, fin: Date): Promise<Depense[]> {
+  return toutesLesPages((de, a) =>
+    supabase
+      .from('expenses')
+      .select(COLONNES_DEPENSE)
+      .gte('spent_at', debut.toISOString())
+      .lt('spent_at', fin.toISOString())
+      .order('spent_at', { ascending: false })
+      .order('id')
+      .range(de, a),
+  )
 }
 
 /** Mes étiquettes les plus utilisées, pour les proposer en un tap. */
@@ -85,15 +88,17 @@ export async function supprimerCadeau(id: string) {
   if (error) throw error
 }
 
-export async function cadeauxEntre(debut: Date, fin: Date): Promise<Cadeau[]> {
-  const { data, error } = await supabase
-    .from('gifts')
-    .select(COLONNES_CADEAU)
-    .gte('given_at', debut.toISOString())
-    .lt('given_at', fin.toISOString())
-    .order('given_at', { ascending: false })
-  if (error) throw error
-  return data
+export function cadeauxEntre(debut: Date, fin: Date): Promise<Cadeau[]> {
+  return toutesLesPages((de, a) =>
+    supabase
+      .from('gifts')
+      .select(COLONNES_CADEAU)
+      .gte('given_at', debut.toISOString())
+      .lt('given_at', fin.toISOString())
+      .order('given_at', { ascending: false })
+      .order('id')
+      .range(de, a),
+  )
 }
 
 // --- Dépenses récurrentes ---------------------------------------------

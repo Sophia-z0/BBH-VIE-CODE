@@ -25,7 +25,7 @@
 2. Log d'une tâche + catalogue modifiable ✅ (masquage côté base déjà actif pour les tâches)
 3. Présence + calendrier ✅
 4. Dépenses, tags, cadeaux, récurrentes, ajout rapide ✅
-5. Masquage + reveal du dimanche (podium)
+5. Masquage + reveal du dimanche (podium) ✅
 6. Statistiques
 7. Notifications Web Push
 8. Capture des paiements (Raccourcis iPhone, MacroDroid Android)

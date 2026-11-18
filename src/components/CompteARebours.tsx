@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { semaineDe } from '../domain/semaine'
 
-/** Temps restant avant le reveal du dimanche 18h, rafraîchi chaque minute. */
+/** Temps restant avant le reveal du dimanche 18h, rafraîchi chaque minute ; mène au podium. */
 export function CompteARebours() {
   const [maintenant, setMaintenant] = useState(() => new Date())
 
@@ -20,5 +21,9 @@ export function CompteARebours() {
   if (jours > 0) delai = `${jours}j et ${heures}h`
   else if (heures > 0) delai = `${heures}h et ${minutes}min`
 
-  return <p className="text-sm text-encre/70">🎉 reveal dans {delai}</p>
+  return (
+    <Link to="/podium" className="text-sm text-encre/70">
+      🎉 reveal dans {delai}
+    </Link>
+  )
 }

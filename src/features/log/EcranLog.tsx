@@ -4,7 +4,9 @@ import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
 import { Retour } from '../../components/Retour'
+import { aujourdhui, jourParis } from '../../domain/calendrier'
 import { encouragementAuHasard } from '../../domain/encouragements'
+import { serieEnCours } from '../../domain/scores'
 import { etoilesDuLog, formaterEtoiles, totalEtoiles } from '../../domain/etoiles'
 import type { LogTache, Tache } from '../../domain/types'
 import { formaterJourHeure } from '../../lib/dates'
@@ -24,7 +26,7 @@ interface Retour {
 /** Écran principal : un tap sur une tâche = un log. */
 export function EcranLog() {
   const { moi } = useFoyerPret()
-  const { taches, mesLogs, setMesLogs, chargement, erreur } = useTachesSemaine(moi.id)
+  const { taches, mesLogs, setMesLogs, joursActifs, chargement, erreur } = useTachesSemaine(moi.id)
 
   // Options du prochain log, remises à zéro après chaque log.
   const [aDeux, setADeux] = useState(false)
@@ -76,6 +78,7 @@ export function EcranLog() {
   if (erreur) return <p className="mt-10 rounded-xl bg-red-100 p-4 text-red-800">{erreur}</p>
 
   const nomTache = (id: string) => taches.find((t) => t.id === id)
+  const serie = serieEnCours([...joursActifs, ...mesLogs.map((l) => jourParis(l.done_at))], aujourdhui())
 
   return (
     <div className="flex flex-col gap-5 pt-4">
@@ -84,6 +87,7 @@ export function EcranLog() {
         <p className="text-5xl font-extrabold">⭐ {formaterEtoiles(totalEtoiles(mesLogs))}</p>
         <p className="mt-1 text-sm opacity-90">
           {mesLogs.length === 0 ? 'Première tâche de la semaine ?' : `${mesLogs.length} tâche${mesLogs.length > 1 ? 's' : ''} loguée${mesLogs.length > 1 ? 's' : ''}`}
+          {serie >= 2 && ` · 🔥 ${serie} jours d’affilée`}
         </p>
       </section>
 
