@@ -18,7 +18,35 @@ src/
   lib/         client Supabase
   sw.ts        service worker (cache hors ligne, notifications)
 public/        icônes de l'app
+supabase/
+  migrations/  schéma de la base, règles de sécurité (RLS), données de départ
 ```
+
+## Configurer Supabase (une seule fois)
+
+1. Créer un projet sur [supabase.com](https://supabase.com) (région Europe).
+2. **Base de données** : dans **SQL Editor**, coller et exécuter les fichiers de
+   `supabase/migrations/` **dans l'ordre** (`0001_…`, puis `0002_…`, etc.).
+   Chaque nouvelle étape de l'app ajoute un fichier : il suffit d'exécuter le nouveau.
+3. **Connexion par code** : dans **Authentication › Emails › Magic Link**, ajouter le code
+   dans le modèle d'e-mail, par exemple :
+   ```html
+   <h2>Ton code BBH VIE</h2>
+   <p style="font-size:32px;font-weight:bold">{{ .Token }}</p>
+   ```
+   L'app demande ce code plutôt que de cliquer sur le lien : sur iPhone, un lien s'ouvre
+   dans Safari et non dans l'app installée sur l'écran d'accueil.
+4. **Adresses autorisées** : dans **Authentication › URL Configuration**, mettre l'adresse
+   GitHub Pages comme *Site URL*, et ajouter `http://localhost:5173` aux *Redirect URLs*.
+5. Récupérer l'URL et la clé `anon` dans **Project Settings › API** (voir ci-dessous).
+
+> Le service d'e-mail fourni par Supabase n'envoie que quelques e-mails par heure :
+> largement assez pour deux personnes. En cas de blocage, attendre un peu ou brancher
+> un SMTP perso (Authentication › Emails › SMTP Settings).
+
+**Premier lancement** : la première personne se connecte et crée le foyer (les tâches et
+catégories de départ sont ajoutées automatiquement). Le code d'invitation s'affiche dans
+**réglages** ; la deuxième personne se connecte avec son propre e-mail et saisit ce code.
 
 ## Lancer en local
 
