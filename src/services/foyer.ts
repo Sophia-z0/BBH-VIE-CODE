@@ -8,7 +8,7 @@ export interface DonneesFoyer {
   membres: Profil[]
 }
 
-const COLONNES_PROFIL = 'id, household_id, display_name, color, monthly_income_cents'
+const COLONNES_PROFIL = 'id, household_id, display_name, color, monthly_income_cents, notif_daily, notif_daily_time, notif_sunday'
 
 /** Foyer de la personne connectée, ou null si elle n'en a pas encore. */
 export async function chargerFoyer(idUtilisateur: string): Promise<DonneesFoyer | null> {
@@ -43,7 +43,7 @@ export async function rejoindreFoyer(code: string, monNom: string, maCouleur: st
 
 export async function modifierMonProfil(
   id: string,
-  champs: Partial<Pick<Profil, 'display_name' | 'color' | 'monthly_income_cents'>>,
+  champs: Partial<Pick<Profil, 'display_name' | 'color' | 'monthly_income_cents' | 'notif_daily' | 'notif_daily_time' | 'notif_sunday'>>,
 ) {
   const { error } = await supabase.from('profiles').update(champs).eq('id', id)
   if (error) throw error

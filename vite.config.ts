@@ -20,6 +20,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      // Service worker actif aussi avec `npm run dev`, pour tester les notifications en local.
+      devOptions: { enabled: true, type: 'module' },
       manifest: {
         name: 'BBH VIE',
         short_name: 'BBH VIE',

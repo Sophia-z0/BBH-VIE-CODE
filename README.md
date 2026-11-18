@@ -39,6 +39,32 @@ supabase/
 catégories de départ sont ajoutées automatiquement). Le code d'invitation s'affiche dans
 **réglages** ; la deuxième personne crée son compte avec son propre e-mail et saisit ce code.
 
+## Notifications (une seule fois)
+
+Rappel quotidien, rappel du dimanche 12h et annonce des résultats à 18h. Une fonction
+Supabase (`supabase/functions/notifier`) est appelée tous les quarts d'heure par `pg_cron`
+et envoie les notifications Web Push.
+
+1. **Clés** : elles sont générées en local dans `supabase/local/` (dossier ignoré par git) :
+   - `secrets-a-copier.txt` : clés VAPID et secret cron ;
+   - `cron_notifications.sql` : planification, déjà remplie pour ce projet.
+   Pour les régénérer ailleurs, partir du modèle `supabase/cron_notifications.sql`.
+   `.env.local` doit contenir `VITE_VAPID_PUBLIC_KEY` (la clé publique).
+2. **Base** : exécuter la migration `0008_notifications.sql` dans **SQL Editor**.
+3. **Fonction** : **Edge Functions › Deploy a new function › Via Editor**, la nommer
+   `notifier`, coller le contenu de `supabase/functions/notifier/index.ts`, puis **Deploy**.
+   Dans les réglages de la fonction, **désactiver « Verify JWT »** : elle est protégée
+   par le secret cron.
+4. **Secrets** : **Edge Functions › Secrets**, ajouter les 4 lignes de
+   `supabase/local/secrets-a-copier.txt` (mettre son e-mail dans `VAPID_SUBJECT`).
+5. **Planification** : exécuter `supabase/local/cron_notifications.sql` dans **SQL Editor**.
+6. **App** : relancer `npm run dev`, puis **réglages › notifications › activer**.
+   Sur iPhone : d'abord ajouter l'app à l'écran d'accueil (iOS 16.4 ou plus récent).
+7. **En ligne** : ajouter la variable GitHub `VITE_VAPID_PUBLIC_KEY` (même valeur).
+
+Pour tester sans attendre : régler l'heure du rappel au prochain quart d'heure, sans
+avoir rien logué de la journée.
+
 ## Lancer en local
 
 Prérequis : Node 24 ou plus récent.
@@ -71,7 +97,8 @@ Le workflow `.github/workflows/deploy.yml` construit et publie l'app à chaque p
 
 1. **Settings › Pages › Build and deployment › Source** : choisir **GitHub Actions**.
 2. **Settings › Secrets and variables › Actions › onglet Variables** : créer
-   `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` (mêmes valeurs que `.env.local`).
+   `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` et `VITE_VAPID_PUBLIC_KEY`
+   (mêmes valeurs que `.env.local`).
    La clé `anon` est publique par conception : ce sont les règles RLS de Supabase qui
    protègent les données. Aucune clé secrète (`service_role`) ne doit aller dans ce dépôt.
 3. Pousser sur `main`. L'app est en ligne à `https://<compte>.github.io/<nom-du-dépôt>/`.

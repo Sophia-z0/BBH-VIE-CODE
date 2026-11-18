@@ -6,6 +6,7 @@ import { messageErreur } from '../../lib/erreurs'
 import { seDeconnecter } from '../../services/auth'
 import { modifierMonProfil } from '../../services/foyer'
 import { useFoyer, useFoyerPret } from '../foyer/FoyerContext'
+import { ReglagesNotifications } from './ReglagesNotifications'
 
 const euros = (centimes: number) =>
   (centimes / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
@@ -52,6 +53,8 @@ export function EcranReglages() {
         {message && <p className="text-sm">{message}</p>}
         <Bouton type="submit">enregistrer</Bouton>
       </form>
+
+      <ReglagesNotifications moi={moi} />
 
       <section className="flex flex-col gap-2">
         <h2 className="text-xl font-bold">{foyer.name}</h2>

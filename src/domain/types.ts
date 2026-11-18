@@ -12,6 +12,10 @@ export interface Profil {
   display_name: string
   color: string
   monthly_income_cents: number | null
+  notif_daily: boolean
+  /** « HH:MM:SS », heure de Paris, par quart d'heure. */
+  notif_daily_time: string
+  notif_sunday: boolean
 }
 
 /** Couleurs proposées pour distinguer les deux personnes dans le calendrier et les stats. */
