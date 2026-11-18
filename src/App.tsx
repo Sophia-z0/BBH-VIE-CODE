@@ -5,6 +5,7 @@ import { EcranConnexion } from './features/auth/EcranConnexion'
 import { EcranBienvenue } from './features/foyer/EcranBienvenue'
 import { FoyerProvider, useFoyer } from './features/foyer/FoyerContext'
 import { EcranLog } from './features/log/EcranLog'
+import { EcranCatalogue } from './features/log/EcranCatalogue'
 import { EcranDepenses } from './features/depenses/EcranDepenses'
 import { EcranCalendrier } from './features/calendrier/EcranCalendrier'
 import { EcranStats } from './features/stats/EcranStats'
@@ -62,6 +63,7 @@ function AppFoyer() {
       <main className="px-4 pb-24">
         <Routes>
           <Route path="/" element={<EcranLog />} />
+          <Route path="/taches" element={<EcranCatalogue />} />
           <Route path="/depenses" element={<EcranDepenses />} />
           <Route path="/calendrier" element={<EcranCalendrier />} />
           <Route path="/stats" element={<EcranStats />} />
