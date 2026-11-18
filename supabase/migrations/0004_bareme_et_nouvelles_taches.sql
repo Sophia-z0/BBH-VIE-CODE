@@ -26,7 +26,7 @@ insert into public.tasks (household_id, name, group_name, emoji, stars, sort_ord
 select h.id, n.name, n.group_name, n.emoji, n.stars, n.sort_order
 from public.households h
 cross join (values
-  ('Faire un repas élaboré',                         'cuisine', '👩‍🍳', 4,  4),
+  ('Faire un repas élaboré',                         'cuisine', '🍲',  4,  4),
   ('Entretien du lave-vaisselle (tamis, sel)',       'cuisine', '🧂',  3,  2),
   ('Vider l''aspirateur',                            'ménage',  '🗑️', 1, 11),
   ('Nettoyer l''aspirateur',                         'ménage',  '🧽',  2, 11),
@@ -52,7 +52,7 @@ as $$
     (hid, 'Entretien du lave-vaisselle (tamis, sel)',     'cuisine',       '🧂',  3,  3),
     (hid, 'Faire la vaisselle',                           'cuisine',       '🧽',  2,  4),
     (hid, 'Faire à manger rapidos',                       'cuisine',       '🍳',  2,  5),
-    (hid, 'Faire un repas élaboré',                       'cuisine',       '👩‍🍳', 4,  6),
+    (hid, 'Faire un repas élaboré',                       'cuisine',       '🍲',  4,  6),
     (hid, 'Faire la poussière',                           'ménage',        '🪶',  3,  7),
     (hid, 'Aspirateur : salon / cuisine',                 'ménage',        '🧹',  2,  8),
     (hid, 'Aspirateur : salle à manger',                  'ménage',        '🧹',  2,  9),
