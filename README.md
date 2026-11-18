@@ -28,25 +28,16 @@ supabase/
 2. **Base de données** : dans **SQL Editor**, coller et exécuter les fichiers de
    `supabase/migrations/` **dans l'ordre** (`0001_…`, puis `0002_…`, etc.).
    Chaque nouvelle étape de l'app ajoute un fichier : il suffit d'exécuter le nouveau.
-3. **Connexion par code** : dans **Authentication › Emails › Magic Link**, ajouter le code
-   dans le modèle d'e-mail, par exemple :
-   ```html
-   <h2>Ton code BBH VIE</h2>
-   <p style="font-size:32px;font-weight:bold">{{ .Token }}</p>
-   ```
-   L'app demande ce code plutôt que de cliquer sur le lien : sur iPhone, un lien s'ouvre
-   dans Safari et non dans l'app installée sur l'écran d'accueil.
-4. **Adresses autorisées** : dans **Authentication › URL Configuration**, mettre l'adresse
-   GitHub Pages comme *Site URL*, et ajouter `http://localhost:5173` aux *Redirect URLs*.
-5. Récupérer l'URL et la clé `anon` dans **Project Settings › API** (voir ci-dessous).
+3. **Connexion** : dans **Authentication › Sign In / Providers › Email**, désactiver
+   **Confirm email** puis enregistrer. Ainsi, pas besoin de configurer d'e-mails :
+   on crée son compte avec e-mail + mot de passe et on entre directement.
+   Mot de passe oublié : le réinitialiser depuis **Authentication › Users**.
+4. Récupérer la **Project URL** et la clé **`anon`** (ou **publishable**) dans
+   **Project Settings › API Keys** (voir ci-dessous). Jamais la clé `service_role` / `secret`.
 
-> Le service d'e-mail fourni par Supabase n'envoie que quelques e-mails par heure :
-> largement assez pour deux personnes. En cas de blocage, attendre un peu ou brancher
-> un SMTP perso (Authentication › Emails › SMTP Settings).
-
-**Premier lancement** : la première personne se connecte et crée le foyer (les tâches et
+**Premier lancement** : la première personne crée son compte et le foyer (les tâches et
 catégories de départ sont ajoutées automatiquement). Le code d'invitation s'affiche dans
-**réglages** ; la deuxième personne se connecte avec son propre e-mail et saisit ce code.
+**réglages** ; la deuxième personne crée son compte avec son propre e-mail et saisit ce code.
 
 ## Lancer en local
 

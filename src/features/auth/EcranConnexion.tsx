@@ -2,13 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Bouton } from '../../components/Bouton'
 import { ChampTexte } from '../../components/ChampTexte'
 import { messageErreur } from '../../lib/erreurs'
-import { envoyerCode, verifierCode } from '../../services/auth'
+import { creerCompte, seConnecter } from '../../services/auth'
 
-/** Connexion sans mot de passe : e-mail, puis code reçu par e-mail. */
 export function EcranConnexion() {
+  const [mode, setMode] = useState<'connexion' | 'inscription'>('connexion')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [codeEnvoye, setCodeEnvoye] = useState(false)
+  const [motDePasse, setMotDePasse] = useState('')
   const [enCours, setEnCours] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
 
@@ -17,14 +16,10 @@ export function EcranConnexion() {
     setEnCours(true)
     setErreur(null)
     try {
-      if (codeEnvoye) await verifierCode(email.trim(), code.trim())
-      else {
-        await envoyerCode(email.trim())
-        setCodeEnvoye(true)
-      }
+      if (mode === 'connexion') await seConnecter(email.trim(), motDePasse)
+      else await creerCompte(email.trim(), motDePasse)
     } catch (e) {
       setErreur(messageErreur(e))
-    } finally {
       setEnCours(false)
     }
   }
@@ -43,37 +38,31 @@ export function EcranConnexion() {
         autoComplete="email"
         required
         value={email}
-        disabled={codeEnvoye}
         onChange={(e) => setEmail(e.target.value)}
       />
-
-      {codeEnvoye && (
-        <>
-          <p className="text-sm text-encre/70">📬 Code envoyé ! Regarde tes e-mails et recopie-le ici.</p>
-          <ChampTexte
-            libelle="code reçu"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6,10}"
-            required
-            autoFocus
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
-        </>
-      )}
+      <ChampTexte
+        libelle="mot de passe"
+        type="password"
+        autoComplete={mode === 'connexion' ? 'current-password' : 'new-password'}
+        minLength={6}
+        required
+        value={motDePasse}
+        onChange={(e) => setMotDePasse(e.target.value)}
+      />
 
       {erreur && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreur}</p>}
 
       <Bouton type="submit" disabled={enCours}>
-        {codeEnvoye ? 'entrer' : 'recevoir mon code'}
+        {mode === 'connexion' ? 'entrer' : 'créer mon compte'}
       </Bouton>
 
-      {codeEnvoye && (
-        <button type="button" className="text-sm text-encre/60 underline" onClick={() => setCodeEnvoye(false)}>
-          changer d'e-mail
-        </button>
-      )}
+      <button
+        type="button"
+        className="text-sm text-encre/60 underline"
+        onClick={() => setMode(mode === 'connexion' ? 'inscription' : 'connexion')}
+      >
+        {mode === 'connexion' ? 'première fois ? créer mon compte' : "j'ai déjà un compte"}
+      </button>
     </form>
   )
 }
