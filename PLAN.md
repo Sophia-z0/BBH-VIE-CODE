@@ -24,7 +24,7 @@
 1. Schéma Supabase, RLS, données de départ, connexion e-mail + mot de passe, foyer + invitation ✅
 2. Log d'une tâche + catalogue modifiable ✅ (masquage côté base déjà actif pour les tâches)
 3. Présence + calendrier ✅
-4. Dépenses, tags, cadeaux, récurrentes, ajout rapide
+4. Dépenses, tags, cadeaux, récurrentes, ajout rapide ✅
 5. Masquage + reveal du dimanche (podium)
 6. Statistiques
 7. Notifications Web Push

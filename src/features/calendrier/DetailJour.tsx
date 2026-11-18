@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { decomposer, nuitModifiable, type CleJour } from '../../domain/calendrier'
 import { etoilesDuLog, formaterEtoiles } from '../../domain/etoiles'
 import { semaineDe, parisVersInstant } from '../../domain/semaine'
-import type { Absence, LogTache, Profil, Tache } from '../../domain/types'
+import type { Absence, Cadeau, Categorie, Depense, LogTache, Profil, Tache } from '../../domain/types'
+import { formaterEuros } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
 import { marquerAbsence, retirerAbsence } from '../../services/presence'
 
@@ -10,14 +11,17 @@ interface Props {
   jour: CleJour
   personnes: Profil[]
   logs: LogTache[]
+  depenses: Depense[]
+  cadeaux: Cadeau[]
+  categories: Categorie[]
   absences: Absence[]
   taches: Tache[]
   onFermer: () => void
   onChangement: () => Promise<void>
 }
 
-/** Panneau du bas : ma présence cette nuit-là et les tâches du jour. */
-export function DetailJour({ jour, personnes, logs, absences, taches, onFermer, onChangement }: Props) {
+/** Panneau du bas : ma présence cette nuit-là, et les tâches, dépenses et cadeaux du jour. */
+export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categories, absences, taches, onFermer, onChangement }: Props) {
   const [moi, autre] = personnes
   const [erreur, setErreur] = useState<string | null>(null)
   const { annee, mois, jour: j } = decomposer(jour)
@@ -95,7 +99,36 @@ export function DetailJour({ jour, personnes, logs, absences, taches, onFermer, 
               </li>
             )
           })}
-          {logs.length === 0 && <li className="text-center text-sm text-encre/50">Aucune tâche ce jour-là.</li>}
+          {depenses.map((d) => {
+            const personne = personnes.find((p) => p.id === d.user_id)
+            const categorie = categories.find((c) => c.id === d.category_id)
+            return (
+              <li key={d.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
+                <span className="text-xl">{categorie?.emoji}</span>
+                <span className="flex-1 font-semibold">
+                  {categorie?.name}
+                  {d.tag && <span className="font-normal text-encre/60"> · {d.tag}</span>}
+                </span>
+                <span className="rounded-full px-2 font-bold text-white" style={{ backgroundColor: personne?.color }}>
+                  💖 {formaterEuros(d.amount_cents)}
+                </span>
+              </li>
+            )
+          })}
+          {cadeaux.map((c) => {
+            const personne = personnes.find((p) => p.id === c.user_id)
+            return (
+              <li key={c.id} className="flex items-center gap-3 rounded-2xl bg-rose/10 px-4 py-3 text-sm">
+                <span className="text-xl">🎁</span>
+                <span className="flex-1">
+                  {c.description} de {formaterEuros(c.estimated_cents)} de <span className="font-semibold">{personne?.display_name}</span>
+                </span>
+              </li>
+            )
+          })}
+          {logs.length + depenses.length + cadeaux.length === 0 && (
+            <li className="text-center text-sm text-encre/50">Rien de logué ce jour-là.</li>
+          )}
           {autreMasque && (
             <li className="text-center text-sm text-encre/50">
               🎁 Ce qu'a fait {autre.display_name} sera révélé dimanche à 18h.

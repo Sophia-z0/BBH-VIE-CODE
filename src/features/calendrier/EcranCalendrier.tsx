@@ -9,6 +9,8 @@ import {
   type CleJour,
 } from '../../domain/calendrier'
 import { formaterEtoiles } from '../../domain/etoiles'
+import { formaterEuros } from '../../lib/argent'
+import { classePuce } from '../../components/Puce'
 import type { Profil } from '../../domain/types'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { DetailJour } from './DetailJour'
@@ -16,7 +18,7 @@ import { useCalendrier } from './useCalendrier'
 
 const JOURS = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
 
-/** Vue mensuelle : étoiles par jour et par semaine, nuits d'absence grisées. */
+/** Vue mensuelle : étoiles ⭐ ou dépenses 💖 par jour et par semaine, nuits d'absence grisées. */
 export function EcranCalendrier() {
   const { moi, membres } = useFoyerPret()
   const autre = membres.find((p) => p.id !== moi.id)
@@ -24,17 +26,13 @@ export function EcranCalendrier() {
 
   const auj = decomposer(aujourdhui())
   const [mois, setMois] = useState({ annee: auj.annee, mois: auj.mois })
-  const { grille, logs, absences, taches, erreur, recharger } = useCalendrier(mois.annee, mois.mois)
+  const { grille, logs, depenses, cadeaux, absences, taches, categories, erreur, recharger } = useCalendrier(mois.annee, mois.mois)
+  const [vue, setVue] = useState<'etoiles' | 'coeurs'>('etoiles')
   const [jourChoisi, setJourChoisi] = useState<CleJour | null>(null)
 
-  const logsParJour = useMemo(() => {
-    const parJour = new Map<CleJour, typeof logs>()
-    for (const log of logs) {
-      const jour = jourParis(log.done_at)
-      parJour.set(jour, [...(parJour.get(jour) ?? []), log])
-    }
-    return parJour
-  }, [logs])
+  const logsParJour = useMemo(() => parJour(logs, (l) => l.done_at), [logs])
+  const depensesParJour = useMemo(() => parJour(depenses, (d) => d.spent_at), [depenses])
+  const cadeauxParJour = useMemo(() => parJour(cadeaux, (c) => c.given_at), [cadeaux])
 
   const absent = (personne: Profil, nuit: CleJour) => absences.some((a) => a.user_id === personne.id && a.night === nuit)
   const maintenant = new Date()
@@ -55,6 +53,15 @@ export function EcranCalendrier() {
         <h1 className="text-xl font-bold">{titre}</h1>
         <button type="button" aria-label="mois suivant" className="px-3 py-1 text-2xl" onClick={() => changerMois(1)}>
           ›
+        </button>
+      </div>
+
+      <div className="flex justify-center gap-2">
+        <button type="button" className={classePuce(vue === 'etoiles')} onClick={() => setVue('etoiles')}>
+          ⭐ tâches
+        </button>
+        <button type="button" className={classePuce(vue === 'coeurs')} onClick={() => setVue('coeurs')}>
+          💖 dépenses
         </button>
       </div>
 
@@ -79,7 +86,10 @@ export function EcranCalendrier() {
         {grille.map((ligne) => {
           const semaine = semaineDeLigne(ligne)
           const revelee = semaine.fin <= maintenant
-          const logsSemaine = logs.filter((l) => new Date(l.done_at) >= semaine.debut && new Date(l.done_at) < semaine.fin)
+          const dansSemaine = (iso: string) => new Date(iso) >= semaine.debut && new Date(iso) < semaine.fin
+          const logsSemaine = logs.filter((l) => dansSemaine(l.done_at))
+          const depensesSemaine = depenses.filter((d) => dansSemaine(d.spent_at))
+          const cadeauxSemaine = cadeaux.filter((c) => dansSemaine(c.given_at))
           const nuits = nuitsDeSemaine(semaine)
 
           return (
@@ -89,6 +99,8 @@ export function EcranCalendrier() {
                   const d = decomposer(jour)
                   const horsMois = d.mois !== mois.mois
                   const logsDuJour = logsParJour.get(jour) ?? []
+                  const depensesDuJour = depensesParJour.get(jour) ?? []
+                  const cadeauxDuJour = cadeauxParJour.get(jour) ?? []
                   return (
                     <button
                       key={jour}
@@ -101,11 +113,14 @@ export function EcranCalendrier() {
                       <span className="font-semibold">{d.jour}</span>
                       {personnes.map((p) => {
                         if (absent(p, jour)) return <span key={p.id} className="rounded-full bg-encre/10 px-1 text-encre/40">🌙</span>
-                        const etoiles = etoilesDe(p.id, logsDuJour)
-                        if (etoiles === 0) return null
+                        const valeur =
+                          vue === 'etoiles' ? etoilesDe(p.id, logsDuJour) : sommeDe(p.id, depensesDuJour, (d) => d.amount_cents)
+                        const aUnCadeau = vue === 'coeurs' && cadeauxDuJour.some((c) => c.user_id === p.id)
+                        if (valeur === 0 && !aUnCadeau) return null
                         return (
                           <span key={p.id} className="rounded-full px-1 font-bold text-white" style={{ backgroundColor: p.color }}>
-                            {formaterEtoiles(etoiles)}
+                            {valeur > 0 && (vue === 'etoiles' ? formaterEtoiles(valeur) : `${Math.round(valeur / 100)}€`)}
+                            {aUnCadeau && '🎁'}
                           </span>
                         )
                       })}
@@ -124,10 +139,14 @@ export function EcranCalendrier() {
                       </span>
                     )
                   }
+                  const cadeauxPersonne = sommeDe(p.id, cadeauxSemaine, (c) => c.estimated_cents)
                   return (
                     <span key={p.id}>
-                      <span style={{ color: p.color }}>●</span> ⭐ {formaterEtoiles(etoilesDe(p.id, logsSemaine))} · {nuitsPresent}{' '}
-                      nuit{nuitsPresent > 1 ? 's' : ''}
+                      <span style={{ color: p.color }}>●</span>{' '}
+                      {vue === 'etoiles'
+                        ? `⭐ ${formaterEtoiles(etoilesDe(p.id, logsSemaine))}`
+                        : `💖 ${formaterEuros(sommeDe(p.id, depensesSemaine, (d) => d.amount_cents))}${cadeauxPersonne > 0 ? ` · 🎁 ${formaterEuros(cadeauxPersonne)}` : ''}`}{' '}
+                      · {nuitsPresent} nuit{nuitsPresent > 1 ? 's' : ''}
                     </span>
                   )
                 })}
@@ -142,6 +161,9 @@ export function EcranCalendrier() {
           jour={jourChoisi}
           personnes={personnes}
           logs={logsParJour.get(jourChoisi) ?? []}
+          depenses={depensesParJour.get(jourChoisi) ?? []}
+          cadeaux={cadeauxParJour.get(jourChoisi) ?? []}
+          categories={categories}
           absences={absences}
           taches={taches}
           onFermer={() => setJourChoisi(null)}
@@ -150,4 +172,18 @@ export function EcranCalendrier() {
       )}
     </div>
   )
+}
+
+/** Regroupe des entrées par jour (heure de Paris). */
+function parJour<T>(entrees: T[], date: (e: T) => string): Map<CleJour, T[]> {
+  const resultat = new Map<CleJour, T[]>()
+  for (const e of entrees) {
+    const jour = jourParis(date(e))
+    resultat.set(jour, [...(resultat.get(jour) ?? []), e])
+  }
+  return resultat
+}
+
+function sommeDe<T extends { user_id: string }>(idPersonne: string, entrees: T[], montant: (e: T) => number): number {
+  return entrees.filter((e) => e.user_id === idPersonne).reduce((t, e) => t + montant(e), 0)
 }

@@ -1,13 +1,13 @@
 import { useMemo, type CSSProperties } from 'react'
-import { emojisDeFete } from '../domain/encouragements'
+import { emojisDeFete, type Occasion } from '../domain/encouragements'
 
 /**
  * Gerbe d'émojis qui partent du centre de l'écran. Changer `cle` relance l'animation.
  */
-export function Celebration({ cle }: { cle: number }) {
+export function Celebration({ cle, occasion = 'tache' }: { cle: number; occasion?: Occasion }) {
   const particules = useMemo(
     () =>
-      emojisDeFete(14).map((emoji, i) => {
+      emojisDeFete(14, occasion).map((emoji, i) => {
         const angle = (i / 14) * 2 * Math.PI + Math.random() * 0.4
         const distance = 120 + Math.random() * 100
         return {
@@ -21,7 +21,7 @@ export function Celebration({ cle }: { cle: number }) {
         }
       }),
     // Nouvelle gerbe à chaque log.
-    [cle],
+    [cle, occasion],
   )
 
   return (

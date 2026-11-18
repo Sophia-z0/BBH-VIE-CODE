@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { Celebration } from '../../components/Celebration'
+import { ChoixQuand, instantChoisi } from '../../components/ChoixQuand'
+import { classePuce } from '../../components/Puce'
+import { Retour } from '../../components/Retour'
 import { encouragementAuHasard } from '../../domain/encouragements'
 import { etoilesDuLog, formaterEtoiles, totalEtoiles } from '../../domain/etoiles'
-import { semaineDe } from '../../domain/semaine'
 import type { LogTache, Tache } from '../../domain/types'
-import { formaterJourHeure, versChampDateHeure } from '../../lib/dates'
+import { formaterJourHeure } from '../../lib/dates'
 import { messageErreur } from '../../lib/erreurs'
 import { loguerTache, supprimerLog } from '../../services/taches'
 import { useFoyerPret } from '../foyer/FoyerContext'
@@ -46,7 +48,7 @@ export function EcranLog() {
   async function loguer(tache: Tache) {
     setErreurLog(null)
     try {
-      const log = await loguerTache(tache.id, quand ? new Date(quand) : new Date(), aDeux)
+      const log = await loguerTache(tache.id, instantChoisi(quand), aDeux)
       setMesLogs((logs) => [log, ...logs])
       setCelebration((n) => n + 1)
       setRetour({ log, tache, message: encouragementAuHasard() })
@@ -139,19 +141,12 @@ export function EcranLog() {
       {celebration > 0 && <Celebration cle={celebration} />}
 
       {retour && (
-        <div
-          className="fixed inset-x-4 bottom-24 z-40 flex items-center gap-3 rounded-2xl bg-encre p-4 text-white shadow-xl"
-          style={{ animation: 'apparaitre 250ms ease-out' }}
-          role="status"
-        >
-          <span className="text-3xl">{retour.tache.emoji}</span>
-          <span className="flex-1">
-            <span className="font-bold">+{formaterEtoiles(etoilesDuLog(retour.log))} ⭐</span> {retour.message}
-          </span>
-          <button type="button" className="text-sm underline opacity-80" onClick={() => annuler(retour.log)}>
-            annuler
-          </button>
-        </div>
+        <Retour
+          emoji={retour.tache.emoji}
+          gain={`+${formaterEtoiles(etoilesDuLog(retour.log))} ⭐`}
+          message={retour.message}
+          onAnnuler={() => annuler(retour.log)}
+        />
       )}
     </div>
   )
@@ -169,33 +164,12 @@ function OptionsLog({
   quand: string | null
   setQuand: (v: string | null) => void
 }) {
-  const puce = (actif: boolean) =>
-    `rounded-full px-4 py-2 text-sm font-semibold transition ${actif ? 'bg-orange text-white' : 'bg-white text-encre/70'}`
-
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button type="button" className={puce(aDeux)} aria-pressed={aDeux} onClick={() => setADeux(!aDeux)}>
+      <button type="button" className={classePuce(aDeux)} aria-pressed={aDeux} onClick={() => setADeux(!aDeux)}>
         👫 à deux
       </button>
-      {quand === null ? (
-        <button type="button" className={puce(false)} onClick={() => setQuand(versChampDateHeure(new Date()))}>
-          🕐 maintenant
-        </button>
-      ) : (
-        <span className="flex items-center gap-1">
-          <input
-            type="datetime-local"
-            className={`${puce(true)} [color-scheme:dark]`}
-            min={versChampDateHeure(semaineDe().debut)}
-            max={versChampDateHeure(new Date())}
-            value={quand}
-            onChange={(e) => setQuand(e.target.value)}
-          />
-          <button type="button" aria-label="revenir à maintenant" className="px-1 text-encre/50" onClick={() => setQuand(null)}>
-            ✕
-          </button>
-        </span>
-      )}
+      <ChoixQuand quand={quand} setQuand={setQuand} />
     </div>
   )
 }

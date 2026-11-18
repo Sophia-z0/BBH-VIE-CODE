@@ -7,6 +7,8 @@ import { FoyerProvider, useFoyer } from './features/foyer/FoyerContext'
 import { EcranLog } from './features/log/EcranLog'
 import { EcranCatalogue } from './features/log/EcranCatalogue'
 import { EcranDepenses } from './features/depenses/EcranDepenses'
+import { EcranRecurrentes } from './features/depenses/EcranRecurrentes'
+import { EcranCategories } from './features/depenses/EcranCategories'
 import { EcranCalendrier } from './features/calendrier/EcranCalendrier'
 import { EcranStats } from './features/stats/EcranStats'
 import { EcranReglages } from './features/reglages/EcranReglages'
@@ -65,6 +67,8 @@ function AppFoyer() {
           <Route path="/" element={<EcranLog />} />
           <Route path="/taches" element={<EcranCatalogue />} />
           <Route path="/depenses" element={<EcranDepenses />} />
+          <Route path="/depenses/recurrentes" element={<EcranRecurrentes />} />
+          <Route path="/depenses/categories" element={<EcranCategories />} />
           <Route path="/calendrier" element={<EcranCalendrier />} />
           <Route path="/stats" element={<EcranStats />} />
           <Route path="/reglages" element={<EcranReglages />} />

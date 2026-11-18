@@ -35,6 +35,11 @@ export default defineConfig({
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        // Appui long sur l'icône de l'app (Android) : accès direct aux deux écrans de log.
+        shortcuts: [
+          { name: 'loguer une tâche', short_name: 'tâche ⭐', url: './#/' },
+          { name: 'ajouter une dépense', short_name: 'dépense 💖', url: './#/depenses' },
+        ],
       },
     }),
   ],
