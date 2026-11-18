@@ -51,7 +51,7 @@ export function heureMuraleParis(instant: Date): HeureMurale {
 }
 
 /** Convertit une heure murale de Paris en instant UTC. */
-function parisVersInstant(annee: number, mois: number, jour: number, heure: number): Date {
+export function parisVersInstant(annee: number, mois: number, jour: number, heure: number): Date {
   const commeSiUtc = Date.UTC(annee, mois - 1, jour, heure)
   // Décalage de Paris à cet instant (1h ou 2h), recalculé une fois pour les bords de changement d'heure.
   let instant = commeSiUtc - decalageParis(new Date(commeSiUtc))

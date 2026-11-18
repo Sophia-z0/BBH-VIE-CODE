@@ -35,3 +35,9 @@ export interface LogTache {
   shared: boolean
   stars: number
 }
+
+/** Nuit passée hors de la maison (« night » au format AAAA-MM-JJ). */
+export interface Absence {
+  user_id: string
+  night: string
+}
