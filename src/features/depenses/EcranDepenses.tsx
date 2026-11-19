@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { Bouton } from '../../components/Bouton'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
-import { Retour } from '../../components/Retour'
+import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
 import { encouragementAuHasard, type Occasion } from '../../domain/encouragements'
 import type { Cadeau, Categorie, Depense } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
@@ -18,12 +17,16 @@ const DUREE_ANNULATION_MS = 5000
 
 type Entree = { type: 'depense'; valeur: Depense } | { type: 'cadeau'; valeur: Cadeau }
 
+/** Dos de tuile affiché : après un ajout (avec l'entrée, annulable) ou pour une aide (sans entrée). */
 interface RetourAffiche {
-  entree: Entree
-  emoji: string
+  /** Tuile retournée : id de la catégorie, ou CLE_CADEAU. */
+  cle: string
+  entree?: Entree
   gain: string
   message: string
 }
+
+const CLE_CADEAU = 'cadeau'
 
 /**
  * Ajout rapide : montant, puis un tap sur la catégorie, et c'est enregistré.
@@ -34,10 +37,8 @@ export function EcranDepenses() {
   const { categories, etiquettes, depenses, setDepenses, cadeaux, setCadeaux, chargement, erreur } = useDepensesSemaine(moi.id)
   const [parametres] = useSearchParams()
 
-  const [mode, setMode] = useState<'depense' | 'cadeau'>('depense')
   const [montant, setMontant] = useState(parametres.get('montant') ?? '')
   const [tag, setTag] = useState(parametres.get('tag') ?? '')
-  const [description, setDescription] = useState('')
   // Jour choisi dans le calendrier (?jour=AAAA-MM-JJ) : « quand » y revient après chaque ajout.
   const quandInitial = quandDuJour(parametres.get('jour'))
   const [quand, setQuand] = useState<string | null>(quandInitial)
@@ -57,22 +58,33 @@ export function EcranDepenses() {
     minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
     setMontant('')
     setTag('')
-    setDescription('')
     setQuand(quandInitial)
+  }
+
+  /** Retourne la tuile sur un message d'aide (rien n'est enregistré). */
+  function aider(cle: string, gain: string, message: string) {
+    setRetour({ cle, gain, message })
+    clearTimeout(minuteurRetour.current)
+    minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
+  }
+
+  function fermerRetour() {
+    clearTimeout(minuteurRetour.current)
+    setRetour(null)
   }
 
   async function enregistrerDepense(categorie: Categorie) {
     setErreurAjout(null)
     const centimes = lireMontant(montant)
-    if (centimes === null) return setErreurAjout('Indique d’abord un montant 💶')
+    if (centimes === null) return aider(categorie.id, '💶', 'Indique d’abord un montant au-dessus')
     try {
       const depense = await ajouterDepense({ category_id: categorie.id, amount_cents: centimes, tag, spent_at: instantChoisi(quand) })
       setDepenses((liste) => [depense, ...liste])
       feter('depense', {
+        cle: categorie.id,
         entree: { type: 'depense', valeur: depense },
-        emoji: categorie.emoji,
         gain: `+${formaterEuros(centimes)} 💖`,
-        message: encouragementAuHasard('depense'),
+        message: encouragementAuHasard('depense', { moi: moi.display_name, categorie: categorie.name }),
       })
     } catch (e) {
       setErreurAjout(messageErreur(e))
@@ -82,16 +94,16 @@ export function EcranDepenses() {
   async function enregistrerCadeau() {
     setErreurAjout(null)
     const centimes = lireMontant(montant)
-    if (!description.trim()) return setErreurAjout('Quel est ce cadeau ? 🎁')
-    if (centimes === null) return setErreurAjout('Estime sa valeur, même à peu près 💶')
+    if (centimes === null) return aider(CLE_CADEAU, '💶', 'Estime sa valeur au-dessus, même à peu près')
+    if (!tag.trim()) return aider(CLE_CADEAU, '🎁', 'Quel est ce cadeau ? Écris-le au-dessus')
     try {
-      const cadeau = await ajouterCadeau({ description: description.trim(), estimated_cents: centimes, given_at: instantChoisi(quand) })
+      const cadeau = await ajouterCadeau({ description: tag.trim(), estimated_cents: centimes, given_at: instantChoisi(quand) })
       setCadeaux((liste) => [cadeau, ...liste])
       feter('cadeau', {
+        cle: CLE_CADEAU,
         entree: { type: 'cadeau', valeur: cadeau },
-        emoji: '🎁',
-        gain: `${cadeau.description} (${formaterEuros(centimes)})`,
-        message: encouragementAuHasard('cadeau'),
+        gain: `🎁 ${formaterEuros(centimes)}`,
+        message: encouragementAuHasard('cadeau', { moi: moi.display_name }),
       })
     } catch (e) {
       setErreurAjout(messageErreur(e))
@@ -107,7 +119,7 @@ export function EcranDepenses() {
         await supprimerCadeau(entree.valeur.id)
         setCadeaux((liste) => liste.filter((c) => c.id !== entree.valeur.id))
       }
-      if (retour?.entree.valeur.id === entree.valeur.id) setRetour(null)
+      if (retour?.entree?.valeur.id === entree.valeur.id) setRetour(null)
     } catch (e) {
       setErreurAjout(messageErreur(e))
     }
@@ -119,6 +131,11 @@ export function EcranDepenses() {
   const totalDepenses = depenses.reduce((t, d) => t + d.amount_cents, 0)
   const totalCadeaux = cadeaux.reduce((t, c) => t + c.estimated_cents, 0)
   const categorie = (id: string) => categories.find((c) => c.id === id)
+  const dosDe = (cle: string): Dos | null => {
+    if (retour?.cle !== cle) return null
+    const { entree } = retour
+    return { gain: retour.gain, message: retour.message, onAnnuler: entree ? () => annuler(entree) : undefined }
+  }
   const entrees: Entree[] = [
     ...depenses.map((valeur): Entree => ({ type: 'depense', valeur })),
     ...cadeaux.map((valeur): Entree => ({ type: 'cadeau', valeur })),
@@ -136,24 +153,11 @@ export function EcranDepenses() {
         )}
       </section>
 
-      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white p-1">
-        {(['depense', 'cadeau'] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMode(m)}
-            className={`rounded-xl py-2 font-semibold ${mode === m ? 'bg-orange text-white' : 'text-encre/60'}`}
-          >
-            {m === 'depense' ? '💖 dépense' : '🎁 cadeau'}
-          </button>
-        ))}
-      </div>
-
       <label className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm">
         <input
-          aria-label={mode === 'depense' ? 'montant' : 'valeur estimée'}
+          aria-label="montant ou valeur estimée du cadeau"
           inputMode="decimal"
-          placeholder={mode === 'depense' ? '0,00' : 'valeur estimée'}
+          placeholder="0,00"
           className="min-w-0 flex-1 bg-transparent text-4xl font-extrabold outline-none"
           value={montant}
           onChange={(e) => setMontant(e.target.value)}
@@ -161,62 +165,51 @@ export function EcranDepenses() {
         <span className="text-3xl font-bold text-encre/40">€</span>
       </label>
 
-      {mode === 'depense' ? (
-        <>
-          <div className="flex flex-col gap-2">
-            <input
-              aria-label="produit ou étiquette (optionnel)"
-              placeholder="produit ou étiquette (optionnel) : papier toilette, chantilly…"
-              maxLength={40}
-              className="rounded-xl bg-white px-4 py-3 text-sm outline-none"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-            />
-            {etiquettes.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {etiquettes.map((e) => (
-                  <button key={e} type="button" className={classePuce(tag === e)} onClick={() => setTag(tag === e ? '' : e)}>
-                    {e}
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className="flex flex-col gap-2">
+        <input
+          aria-label="produit, étiquette ou cadeau (optionnel)"
+          placeholder="produit, étiquette ou cadeau : papier toilette, bouquet…"
+          maxLength={40}
+          className="rounded-xl bg-white px-4 py-3 text-sm outline-none"
+          value={tag}
+          onChange={(e) => setTag(e.target.value)}
+        />
+        {etiquettes.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {etiquettes.map((e) => (
+              <button key={e} type="button" className={classePuce(tag === e)} onClick={() => setTag(tag === e ? '' : e)}>
+                {e}
+              </button>
+            ))}
           </div>
-          <ChoixQuand quand={quand} setQuand={setQuand} />
-          {erreurAjout && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurAjout}</p>}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {categories
-              .filter((c) => c.active)
-              .map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => enregistrerDepense(c)}
-                  className="flex min-h-20 items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-sm transition active:scale-95 active:bg-rose/10"
-                >
-                  <span className="text-3xl">{c.emoji}</span>
-                  <span className="text-sm leading-tight font-semibold">{c.name}</span>
-                </button>
-              ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <input
-            aria-label="description du cadeau"
-            placeholder="panier de légumes, bouteille de vin…"
-            maxLength={80}
-            className="rounded-xl bg-white px-4 py-3 outline-none"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <ChoixQuand quand={quand} setQuand={setQuand} />
-          {erreurAjout && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurAjout}</p>}
-          <Bouton type="button" onClick={enregistrerCadeau}>
-            offrir au foyer 🎁
-          </Bouton>
-        </>
-      )}
+        )}
+      </div>
+      <ChoixQuand quand={quand} setQuand={setQuand} />
+      {erreurAjout && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurAjout}</p>}
+
+      {/* Une seule ligne qui défile : le cadeau rose en tête (hors total 💖), puis les catégories. */}
+      <div className="sans-barre -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4">
+        <TuileRetournable dos={dosDe(CLE_CADEAU)} onTap={enregistrerCadeau} onFermer={fermerRetour} classeFace="tuile-rose">
+          <span className="text-4xl">🎁</span>
+          <span className="line-clamp-3 text-xs leading-tight font-semibold">offrir au foyer</span>
+          <span className="text-[10px] leading-tight text-encre/60">hors dépenses</span>
+        </TuileRetournable>
+        {categories
+          .filter((c) => c.active)
+          .map((c) => (
+            <TuileRetournable
+              key={c.id}
+              dos={dosDe(c.id)}
+              onTap={() => enregistrerDepense(c)}
+              onFermer={fermerRetour}
+              classeFace="bg-white shadow-sm active:bg-rose/10"
+            >
+              <span className="text-4xl">{c.emoji}</span>
+              <span className="line-clamp-3 text-xs leading-tight font-semibold">{c.name}</span>
+              <span className="text-xs">💖</span>
+            </TuileRetournable>
+          ))}
+      </div>
 
       <div className="flex justify-center gap-4 text-sm text-encre/60">
         <Link to="/depenses/recurrentes" className="underline">
@@ -266,7 +259,6 @@ export function EcranDepenses() {
       )}
 
       {celebration.cle > 0 && <Celebration cle={celebration.cle} occasion={celebration.occasion} />}
-      {retour && <Retour emoji={retour.emoji} gain={retour.gain} message={retour.message} onAnnuler={() => annuler(retour.entree)} />}
     </div>
   )
 }

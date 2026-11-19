@@ -3,6 +3,12 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (tuiles qui se retournent, dépenses en tuiles, cadeau rose, messages personnalisés)
+
+- **Tuile qui se retourne** (`components/TuileRetournable.tsx`, styles `.tuile-carte` dans `index.css`) : au tap, la tuile pivote et montre au dos le gain, le message et « annuler » ; elle se referme seule après 5 s, ou en touchant le dos. Sans rotation (fondu) si le téléphone demande moins de mouvement. Le bandeau noir du bas disparaît (`components/Retour.tsx` supprimé).
+- **Dépenses** : plus de choix « dépense / cadeau ». Les catégories deviennent une ligne de tuiles blanches qui défile, avec en tête une **tuile cadeau 🎁 rose qui rayonne** : le montant sert de valeur estimée et le champ texte de description. Les cadeaux restent hors du total 💖. Montant ou description manquants : la tuile se retourne sur un message d'aide (`EcranDepenses.tsx`).
+- **Messages** (`domain/encouragements.ts`) : nouveaux messages (« Tu gères de kheur ! », « Ça c'est un DEUBEHBZ ! », « Trop d'chaaaaance ✨ »…), `{moi}` remplacé par mon prénom, message du frigo (« Merci ! (de la part du frigzzz 🥦) ») une fois sur deux pour une dépense alimentaire (catégorie contenant « aliment », « courses »…).
+
 ## 2026-11-19 (onglet tâches : lignes qui défilent, tuiles qui rayonnent)
 
 - **Une ligne par groupe**, qui défile seulement à l'horizontale (sans barre visible, arrêt sur chaque tuile) : toutes les tuiles sont verticales et de même taille, donc toutes les pièces et catégories ont la même hauteur. Les lignes vont jusqu'au bord de l'écran.

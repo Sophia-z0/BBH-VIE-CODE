@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
-import { Retour } from '../../components/Retour'
+import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
 import { aujourdhui, jourParis } from '../../domain/calendrier'
 import { encouragementAuHasard } from '../../domain/encouragements'
 import { serieEnCours } from '../../domain/scores'
@@ -51,7 +51,7 @@ export function EcranLog() {
       const log = await loguerTache(tache.id, instantChoisi(quand), aDeux)
       setMesLogs((logs) => [log, ...logs])
       setCelebration((n) => n + 1)
-      setRetour({ log, tache, message: encouragementAuHasard() })
+      setRetour({ log, tache, message: encouragementAuHasard('tache', { moi: moi.display_name }) })
       navigator.vibrate?.(30)
       clearTimeout(minuteurRetour.current)
       minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
@@ -60,6 +60,11 @@ export function EcranLog() {
     } catch (e) {
       setErreurLog(messageErreur(e))
     }
+  }
+
+  function fermerRetour() {
+    clearTimeout(minuteurRetour.current)
+    setRetour(null)
   }
 
   async function annuler(log: LogTache) {
@@ -76,6 +81,10 @@ export function EcranLog() {
   if (erreur) return <p className="mt-10 rounded-xl bg-red-100 p-4 text-red-800">{erreur}</p>
 
   const nomTache = (id: string) => taches.find((t) => t.id === id)
+  const dosDe = (tache: Tache): Dos | null =>
+    retour?.tache.id === tache.id
+      ? { gain: `+${formaterEtoiles(etoilesDuLog(retour.log))} ⭐`, message: retour.message, onAnnuler: () => annuler(retour.log) }
+      : null
   const serie = serieEnCours([...joursActifs, ...mesLogs.map((l) => jourParis(l.done_at))], aujourdhui())
 
   return (
@@ -93,8 +102,8 @@ export function EcranLog() {
 
       {erreurLog && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurLog}</p>}
 
-      <Plan titre="🏠 les pièces" groupes={plans.pieces} onLog={loguer} />
-      <Plan titre="🧺 le reste" groupes={plans.reste} onLog={loguer} />
+      <Plan titre="🏠 les pièces" groupes={plans.pieces} onLog={loguer} dosDe={dosDe} onFermer={fermerRetour} />
+      <Plan titre="🧺 le reste" groupes={plans.reste} onLog={loguer} dosDe={dosDe} onFermer={fermerRetour} />
 
       <Link to="/taches" className="text-center text-sm text-encre/60 underline">
         ✏️ modifier la liste des tâches
@@ -125,14 +134,6 @@ export function EcranLog() {
 
       {celebration > 0 && <Celebration cle={celebration} />}
 
-      {retour && (
-        <Retour
-          emoji={retour.tache.emoji}
-          gain={`+${formaterEtoiles(etoilesDuLog(retour.log))} ⭐`}
-          message={retour.message}
-          onAnnuler={() => annuler(retour.log)}
-        />
-      )}
     </div>
   )
 }
@@ -142,7 +143,19 @@ export function EcranLog() {
  * Toutes les tuiles ont la même taille, donc toutes les lignes la même hauteur.
  * Quotidien en tête, en tuiles blanches ; occasionnel ensuite, en tuiles qui rayonnent.
  */
-function Plan({ titre, groupes, onLog }: { titre: string; groupes: Groupe[]; onLog: (tache: Tache) => void }) {
+function Plan({
+  titre,
+  groupes,
+  onLog,
+  dosDe,
+  onFermer,
+}: {
+  titre: string
+  groupes: Groupe[]
+  onLog: (tache: Tache) => void
+  dosDe: (tache: Tache) => Dos | null
+  onFermer: () => void
+}) {
   if (groupes.length === 0) return null
   return (
     <section className="-mx-4 flex flex-col gap-1">
@@ -152,18 +165,17 @@ function Plan({ titre, groupes, onLog }: { titre: string; groupes: Groupe[]; onL
           <h3 className="px-4 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h3>
           <div className="sans-barre flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4">
             {liste.map((tache) => (
-              <button
+              <TuileRetournable
                 key={tache.id}
-                type="button"
-                onClick={() => onLog(tache)}
-                className={`flex h-40 w-28 flex-none snap-start flex-col items-center justify-between rounded-2xl p-3 text-center transition active:scale-95 ${
-                  tache.everyday ? 'bg-white shadow-sm active:bg-orange/10' : 'tuile-rayonnante'
-                }`}
+                dos={dosDe(tache)}
+                onTap={() => onLog(tache)}
+                onFermer={onFermer}
+                classeFace={tache.everyday ? 'bg-white shadow-sm active:bg-orange/10' : 'tuile-rayonnante'}
               >
                 <span className="text-4xl">{tache.emoji}</span>
                 <span className="line-clamp-3 text-xs leading-tight font-semibold">{tache.name}</span>
                 <span className="text-xs">{'⭐'.repeat(tache.stars)}</span>
-              </button>
+              </TuileRetournable>
             ))}
           </div>
         </div>

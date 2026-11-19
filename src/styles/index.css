@@ -50,10 +50,65 @@ body {
   animation: rayonner 3.2s ease-in-out infinite;
 }
 
+/* Tuile cadeau (onglet dépenses) : même halo doux, en rose. */
+@keyframes rayonner-rose {
+  0%,
+  100% {
+    box-shadow: 0 0 0.4rem 0.05rem rgb(236 72 153 / 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0.6rem 0.15rem rgb(236 72 153 / 0.4);
+  }
+}
+
+.tuile-rose {
+  background: radial-gradient(circle at 50% 25%, #fff5fa 0%, #fce7f3 60%, #fbcfe8 100%);
+  animation: rayonner-rose 3.2s ease-in-out infinite;
+}
+
+/* Tuile qui se retourne (components/TuileRetournable.tsx). */
+.tuile-carte {
+  transform-style: preserve-3d;
+  transition: transform 500ms ease-in-out;
+}
+.tuile-carte-retournee {
+  transform: rotateY(180deg);
+}
+.tuile-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.tuile-dos {
+  transform: rotateY(180deg);
+}
+/* La face cachée ne doit pas capter les taps (Safari ignore backface-visibility pour les clics). */
+.tuile-carte-retournee > .tuile-face:not(.tuile-dos),
+.tuile-carte:not(.tuile-carte-retournee) > .tuile-dos {
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tuile-rayonnante {
     animation: none;
     box-shadow: 0 0 0.5rem 0.1rem rgb(251 146 60 / 0.3);
+  }
+  .tuile-rose {
+    animation: none;
+    box-shadow: 0 0 0.5rem 0.1rem rgb(236 72 153 / 0.3);
+  }
+  /* Sans rotation : la face s'efface en fondu et laisse voir le dos. */
+  .tuile-carte,
+  .tuile-carte-retournee,
+  .tuile-dos {
+    transform: none;
+    transition: none;
+  }
+  .tuile-face {
+    transition: opacity 300ms ease-in-out;
+  }
+  .tuile-carte-retournee > .tuile-face:not(.tuile-dos),
+  .tuile-carte:not(.tuile-carte-retournee) > .tuile-dos {
+    opacity: 0;
   }
 }
 
