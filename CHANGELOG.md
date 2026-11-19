@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (ticket de caisse : petit modèle)
+
+- **`lire-ticket`** passe à Claude Haiku 5.5 (effort bas) au lieu de Claude Opus 5.5 : environ 0,1 centime par ticket au lieu de quelques centimes. Plus de relance automatique sur un autre modèle en cas de refus (pas proposée pour Haiku) ; un refus renvoie « lecture refusée » (`supabase/functions/lire-ticket/index.ts`, `README.md`).
+
 ## 2026-11-19 (ticket de caisse en photo ; dos des tuiles de la couleur de la face)
 
 - **Ticket de caisse** : tuile « 🧾 ticket de caisse » dans la ligne des dépenses (après le cadeau). Photo (appareil ou galerie) réduite à 1800 px, envoyée à la nouvelle fonction Supabase `lire-ticket`, qui la lit avec Claude (`claude-opus-5-5`, sortie JSON imposée) et renvoie magasin, date et articles (remises en négatif). Panneau : tout est coché, on décoche le perso, on choisit la catégorie (alimentaire par défaut), puis **une seule dépense** du total coché, magasin en étiquette, date du ticket si elle est dans la semaine. La photo n'est jamais stockée (`supabase/functions/lire-ticket/index.ts`, `services/ticket.ts`, `features/depenses/PanneauTicket.tsx`).

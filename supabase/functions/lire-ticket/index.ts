@@ -66,13 +66,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const message = await client.beta.messages.create({
-      model: 'claude-opus-5-5',
+    // Claude Haiku 5.5 : le plus petit modèle, environ 0,1 centime par ticket ; effort bas pour limiter la réflexion.
+    const message = await client.messages.create({
+      model: 'claude-haiku-5-5',
       max_tokens: 16000,
-      // Si la demande est refusée par un filtre de sécurité, l'API la relance sur le modèle recommandé.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
       messages: [
         {
           role: 'user',
