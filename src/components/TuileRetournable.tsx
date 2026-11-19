@@ -48,16 +48,16 @@ export function TuileRetournable({
           role="status"
           aria-hidden={!retournee}
           onClick={onFermer}
-          className="tuile-face tuile-dos absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-encre p-3 text-center text-white"
+          className="tuile-face tuile-dos absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-creme p-3 text-center text-encre ring-2 ring-orange/30 ring-inset"
         >
           {affiche && (
             <>
-              <span className="text-lg leading-tight font-extrabold">{affiche.gain}</span>
+              <span className="text-lg leading-tight font-extrabold text-orange">{affiche.gain}</span>
               <span className="text-xs leading-snug">{affiche.message}</span>
               {retournee && affiche.onAnnuler && (
                 <button
                   type="button"
-                  className="mt-1 text-xs underline opacity-80"
+                  className="mt-1 text-xs text-encre/50 underline"
                   onClick={(e) => {
                     e.stopPropagation()
                     affiche.onAnnuler?.()

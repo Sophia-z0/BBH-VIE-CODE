@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (dos de tuile plus doux)
+
+- **Dos des tuiles retournées** : fond crème avec un liseré orange pâle et le gain en orange, au lieu du fond brun foncé, trop contrasté (`TuileRetournable.tsx`).
+
 ## 2026-11-19 (tuiles qui se retournent, dépenses en tuiles, cadeau rose, messages personnalisés)
 
 - **Tuile qui se retourne** (`components/TuileRetournable.tsx`, styles `.tuile-carte` dans `index.css`) : au tap, la tuile pivote et montre au dos le gain, le message et « annuler » ; elle se referme seule après 5 s, ou en touchant le dos. Sans rotation (fondu) si le téléphone demande moins de mouvement. Le bandeau noir du bas disparaît (`components/Retour.tsx` supprimé).
