@@ -62,11 +62,50 @@ export function nuitModifiable(nuit: CleJour, maintenant = new Date()): boolean 
 }
 
 /**
+ * Tâches faites à deux loguées par les deux personnes : deux logs « à deux » de la même
+ * tâche, le même jour (Paris), par deux personnes différentes, sont la même tâche.
+ * Appariement un pour un, au plus proche dans le temps ; renvoie l'id du log le plus tardif
+ * de chaque paire, qui ne doit pas être compté.
+ */
+export function logsEnDouble(logs: LogTache[]): Set<string> {
+  const groupes = new Map<string, LogTache[]>()
+  for (const log of logs) {
+    if (!log.shared) continue
+    const cle = `${log.task_id}|${jourParis(log.done_at)}`
+    groupes.set(cle, [...(groupes.get(cle) ?? []), log])
+  }
+
+  const doublons = new Set<string>()
+  for (const groupe of groupes.values()) {
+    const paires: { a: LogTache; b: LogTache; ecart: number }[] = []
+    for (const a of groupe) {
+      for (const b of groupe) {
+        if (a.user_id < b.user_id) {
+          paires.push({ a, b, ecart: Math.abs(Date.parse(a.done_at) - Date.parse(b.done_at)) })
+        }
+      }
+    }
+    paires.sort((x, y) => x.ecart - y.ecart)
+    const pris = new Set<string>()
+    for (const { a, b } of paires) {
+      if (pris.has(a.id) || pris.has(b.id)) continue
+      pris.add(a.id)
+      pris.add(b.id)
+      const tardif = Date.parse(a.done_at) > Date.parse(b.done_at) || (a.done_at === b.done_at && a.id > b.id) ? a : b
+      doublons.add(tardif.id)
+    }
+  }
+  return doublons
+}
+
+/**
  * Étoiles d'une personne sur une liste de logs : les siens, plus la moitié des tâches
- * faites à deux loguées par l'autre.
+ * faites à deux loguées par l'autre. Une tâche à deux loguée par les deux ne compte qu'une fois.
  */
 export function etoilesDe(idPersonne: string, logs: LogTache[]): number {
+  const doublons = logsEnDouble(logs)
   return logs.reduce((total, log) => {
+    if (doublons.has(log.id)) return total
     if (log.user_id === idPersonne) return total + etoilesDuLog(log)
     if (log.shared) return total + log.stars / 2
     return total

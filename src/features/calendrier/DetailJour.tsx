@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { decomposer, nuitModifiable, type CleJour } from '../../domain/calendrier'
+import { decomposer, logsEnDouble, nuitModifiable, type CleJour } from '../../domain/calendrier'
 import { etoilesDuLog, formaterEtoiles } from '../../domain/etoiles'
 import { semaineDe, parisVersInstant } from '../../domain/semaine'
 import type { Absence, Cadeau, Categorie, Depense, LogTache, Profil, Tache } from '../../domain/types'
@@ -49,6 +49,7 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
   }
 
   const tache = (id: string) => taches.find((t) => t.id === id)
+  const doublons = logsEnDouble(logs)
 
   return (
     <div className="fixed inset-0 z-40 flex items-end bg-encre/30" onClick={onFermer}>
@@ -86,14 +87,19 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
         <ul className="mt-4 flex flex-col gap-2">
           {logs.map((log) => {
             const personne = personnes.find((p) => p.id === log.user_id)
+            const enDouble = doublons.has(log.id)
             return (
               <li key={log.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
                 <span className="text-xl">{tache(log.task_id)?.emoji}</span>
                 <span className="flex-1 font-semibold">
                   {tache(log.task_id)?.name}
                   {log.shared && ' 👫'}
+                  {enDouble && <span className="block text-xs font-normal text-encre/50">logué par vous deux, compté une fois</span>}
                 </span>
-                <span className="rounded-full px-2 font-bold text-white" style={{ backgroundColor: personne?.color }}>
+                <span
+                  className={`rounded-full px-2 font-bold text-white ${enDouble ? 'line-through opacity-40' : ''}`}
+                  style={{ backgroundColor: personne?.color }}
+                >
                   ⭐ {formaterEtoiles(etoilesDuLog(log))}
                 </span>
               </li>
