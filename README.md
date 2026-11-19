@@ -65,6 +65,22 @@ et envoie les notifications Web Push.
 Pour tester sans attendre : régler l'heure du rappel au prochain quart d'heure, sans
 avoir rien logué de la journée.
 
+## Lecture des tickets de caisse (une seule fois)
+
+La tuile « 🧾 ticket de caisse » (onglet dépenses) envoie la photo, réduite, à la fonction
+Supabase `lire-ticket`, qui la fait lire par Claude (API Anthropic) et renvoie le magasin,
+la date et les articles. La photo n'est stockée nulle part. Chaque lecture est facturée
+à l'usage sur le compte Anthropic.
+
+1. **Clé** : créer une clé d'API sur [console.anthropic.com](https://console.anthropic.com)
+   (Settings › API Keys), avec un peu de crédit.
+2. **Secret** : **Edge Functions › Secrets**, ajouter `ANTHROPIC_API_KEY` avec cette clé.
+3. **Base** : exécuter la migration `0010_articles_des_depenses.sql` dans **SQL Editor**
+   **avant** de pousser la nouvelle version de l'app (elle lit la nouvelle colonne).
+4. **Fonction** : **Edge Functions › Deploy a new function › Via Editor**, la nommer
+   `lire-ticket`, coller le contenu de `supabase/functions/lire-ticket/index.ts`, puis **Deploy**.
+   Laisser **« Verify JWT » activé** : seules les personnes connectées peuvent l'appeler.
+
 ## Lancer en local
 
 Prérequis : Node 24 ou plus récent.

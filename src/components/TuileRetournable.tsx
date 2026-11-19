@@ -22,7 +22,7 @@ export function TuileRetournable({
   dos: Dos | null
   onTap: () => void
   onFermer: () => void
-  /** Fond et effets de la face (blanche, rayonnante…). */
+  /** Fond et effets de la tuile (blanche, rayonnante…), identiques sur la face et le dos. */
   classeFace: string
   children: ReactNode
 }) {
@@ -48,7 +48,7 @@ export function TuileRetournable({
           role="status"
           aria-hidden={!retournee}
           onClick={onFermer}
-          className="tuile-face tuile-dos absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-creme p-3 text-center text-encre ring-2 ring-orange/30 ring-inset"
+          className={`tuile-face tuile-dos absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-encre ${classeFace}`}
         >
           {affiche && (
             <>

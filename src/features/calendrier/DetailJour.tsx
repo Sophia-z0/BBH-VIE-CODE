@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { aujourdhui, decomposer, logsEnDouble, nuitModifiable, type CleJour } from '../../domain/calendrier'
+import { decomposer, jourLoggable, logsEnDouble, nuitModifiable, type CleJour } from '../../domain/calendrier'
 import { etoilesDuLog, formaterEtoiles } from '../../domain/etoiles'
 import { semaineDe, parisVersInstant } from '../../domain/semaine'
 import type { Absence, Cadeau, Categorie, Depense, LogTache, Profil, Tache } from '../../domain/types'
@@ -37,7 +37,7 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
   const absentCetteNuit = absences.some((a) => a.user_id === moi.id && a.night === jour)
   const modifiable = nuitModifiable(jour)
   // On ne peut loguer que dans la semaine de jeu en cours, et pas dans le futur.
-  const loggable = jour <= aujourdhui() && parisVersInstant(annee, mois, j, 23) >= semaineDe().debut
+  const loggable = jourLoggable(jour)
   const autreMasque =autre && semaineDe(parisVersInstant(annee, mois, j, 12)).fin > new Date()
 
   async function basculerPresence() {

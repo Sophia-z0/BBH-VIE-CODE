@@ -55,6 +55,12 @@ export function nuitsDeSemaine(semaine: Semaine): CleJour[] {
   return Array.from({ length: 7 }, (_, i) => cleJour(annee, mois, jour + i))
 }
 
+/** On peut loguer ce jour-là : il est dans la semaine de jeu en cours et pas dans le futur. */
+export function jourLoggable(jour: CleJour, maintenant = new Date()): boolean {
+  const { annee, mois, jour: j } = decomposer(jour)
+  return jour <= jourParis(maintenant) && parisVersInstant(annee, mois, j, 23) >= semaineDe(maintenant).debut
+}
+
 /** Une nuit est modifiable tant que sa semaine de jeu n'est pas révélée. */
 export function nuitModifiable(nuit: CleJour, maintenant = new Date()): boolean {
   const { annee, mois, jour } = decomposer(nuit)

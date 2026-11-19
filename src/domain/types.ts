@@ -66,6 +66,14 @@ export interface Depense {
   note: string | null
   spent_at: string
   recurring_id: string | null
+  /** Articles retenus quand la dépense vient d'un ticket de caisse (migration 0010). */
+  items: ArticleTicket[] | null
+}
+
+/** Ligne d'un ticket de caisse ; montant négatif pour une remise. */
+export interface ArticleTicket {
+  libelle: string
+  montant_cents: number
 }
 
 /** Service non chiffré (panier de légumes offert…), compté à part des dépenses. */

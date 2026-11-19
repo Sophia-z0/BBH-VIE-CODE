@@ -3,6 +3,14 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (ticket de caisse en photo ; dos des tuiles de la couleur de la face)
+
+- **Ticket de caisse** : tuile « 🧾 ticket de caisse » dans la ligne des dépenses (après le cadeau). Photo (appareil ou galerie) réduite à 1800 px, envoyée à la nouvelle fonction Supabase `lire-ticket`, qui la lit avec Claude (`claude-opus-5-5`, sortie JSON imposée) et renvoie magasin, date et articles (remises en négatif). Panneau : tout est coché, on décoche le perso, on choisit la catégorie (alimentaire par défaut), puis **une seule dépense** du total coché, magasin en étiquette, date du ticket si elle est dans la semaine. La photo n'est jamais stockée (`supabase/functions/lire-ticket/index.ts`, `services/ticket.ts`, `features/depenses/PanneauTicket.tsx`).
+- **Migration `0010_articles_des_depenses.sql`** (à exécuter **avant** de pousser) : colonne optionnelle `expenses.items` (articles retenus). Dans « mes entrées de la semaine », « 🧾 n articles » déplie la liste.
+- **Mise en place** : secret `ANTHROPIC_API_KEY` et déploiement de la fonction, décrits dans le `README.md`.
+- **Dos des tuiles retournées** : même fond que la face (blanc, orange rayonnant ou rose), au lieu du crème uniforme (`TuileRetournable.tsx`).
+- `jourLoggable` (`domain/calendrier.ts`) partagé entre le détail d'un jour et le ticket.
+
 ## 2026-11-19 (dos de tuile plus doux)
 
 - **Dos des tuiles retournées** : fond crème avec un liseré orange pâle et le gain en orange, au lieu du fond brun foncé, trop contrasté (`TuileRetournable.tsx`).

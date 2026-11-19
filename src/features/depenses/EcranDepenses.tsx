@@ -11,6 +11,7 @@ import { formaterJourHeure } from '../../lib/dates'
 import { messageErreur } from '../../lib/erreurs'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
+import { PanneauTicket, type TicketValide } from './PanneauTicket'
 import { useDepensesSemaine } from './useDepensesSemaine'
 
 const DUREE_ANNULATION_MS = 5000
@@ -27,6 +28,7 @@ interface RetourAffiche {
 }
 
 const CLE_CADEAU = 'cadeau'
+const CLE_TICKET = 'ticket'
 
 /**
  * Ajout rapide : montant, puis un tap sur la catégorie, et c'est enregistré.
@@ -47,6 +49,8 @@ export function EcranDepenses() {
   const [retour, setRetour] = useState<RetourAffiche | null>(null)
   const [erreurAjout, setErreurAjout] = useState<string | null>(null)
   const minuteurRetour = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const champPhoto = useRef<HTMLInputElement>(null)
+  const [photo, setPhoto] = useState<File | null>(null)
 
   useEffect(() => () => clearTimeout(minuteurRetour.current), [])
 
@@ -89,6 +93,26 @@ export function EcranDepenses() {
     } catch (e) {
       setErreurAjout(messageErreur(e))
     }
+  }
+
+  /** Ticket lu et coché : une seule dépense (le total coché), avec la liste des articles retenus. */
+  async function enregistrerTicket(ticket: TicketValide) {
+    const depense = await ajouterDepense({
+      category_id: ticket.categorie.id,
+      amount_cents: ticket.montant,
+      tag: ticket.magasin,
+      // Date du ticket si elle est dans la semaine en cours, sinon la date choisie à l'écran.
+      spent_at: instantChoisi(ticket.jour ? quandDuJour(ticket.jour) : quand),
+      items: ticket.articles,
+    })
+    setDepenses((liste) => [depense, ...liste])
+    setPhoto(null)
+    feter('depense', {
+      cle: CLE_TICKET,
+      entree: { type: 'depense', valeur: depense },
+      gain: `+${formaterEuros(ticket.montant)} 💖`,
+      message: encouragementAuHasard('depense', { moi: moi.display_name, categorie: ticket.categorie.name }),
+    })
   }
 
   async function enregistrerCadeau() {
@@ -187,12 +211,35 @@ export function EcranDepenses() {
       <ChoixQuand quand={quand} setQuand={setQuand} />
       {erreurAjout && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurAjout}</p>}
 
+      {/* Photo du ticket : appareil photo ou galerie, au choix du téléphone. */}
+      <input
+        ref={champPhoto}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const fichier = e.target.files?.[0]
+          e.target.value = ''
+          if (fichier) setPhoto(fichier)
+        }}
+      />
+
       {/* Une seule ligne qui défile : le cadeau rose en tête (hors total 💖), puis les catégories. */}
       <div className="sans-barre -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4">
         <TuileRetournable dos={dosDe(CLE_CADEAU)} onTap={enregistrerCadeau} onFermer={fermerRetour} classeFace="tuile-rose">
           <span className="text-4xl">🎁</span>
           <span className="line-clamp-3 text-xs leading-tight font-semibold">offrir au foyer</span>
           <span className="text-[10px] leading-tight text-encre/60">hors dépenses</span>
+        </TuileRetournable>
+        <TuileRetournable
+          dos={dosDe(CLE_TICKET)}
+          onTap={() => champPhoto.current?.click()}
+          onFermer={fermerRetour}
+          classeFace="bg-white shadow-sm active:bg-rose/10"
+        >
+          <span className="text-4xl">🧾</span>
+          <span className="line-clamp-3 text-xs leading-tight font-semibold">ticket de caisse</span>
+          <span className="text-xs">📷</span>
         </TuileRetournable>
         {categories
           .filter((c) => c.active)
@@ -233,6 +280,19 @@ export function EcranDepenses() {
                       <span className="font-semibold">{categorie(entree.valeur.category_id)?.name}</span>
                       {entree.valeur.tag && <span className="text-encre/60"> · {entree.valeur.tag}</span>}
                       {entree.valeur.recurring_id && ' 🔁'}
+                      {entree.valeur.items && entree.valeur.items.length > 0 && (
+                        <details className="text-xs text-encre/60">
+                          <summary className="cursor-pointer">🧾 {entree.valeur.items.length} article{entree.valeur.items.length > 1 ? 's' : ''}</summary>
+                          <ul>
+                            {entree.valeur.items.map((article, i) => (
+                              <li key={i} className="flex justify-between gap-2">
+                                <span>{article.libelle}</span>
+                                <span>{formaterEuros(article.montant_cents)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
                       <br />
                       <span className="text-encre/50">{formaterJourHeure(entree.valeur.spent_at)}</span>
                     </span>
@@ -256,6 +316,15 @@ export function EcranDepenses() {
             ))}
           </ul>
         </section>
+      )}
+
+      {photo && (
+        <PanneauTicket
+          photo={photo}
+          categories={categories.filter((c) => c.active)}
+          onValider={enregistrerTicket}
+          onFermer={() => setPhoto(null)}
+        />
       )}
 
       {celebration.cle > 0 && <Celebration cle={celebration.cle} occasion={celebration.occasion} />}
