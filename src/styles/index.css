@@ -35,28 +35,25 @@ body {
 
 /* Tuiles des tâches occasionnelles (onglet tâches) : elles rayonnent pour donner envie. */
 @keyframes rayonner {
+  /* Halo de 12px au plus : la ligne a 16px de marge en haut et en bas, il n'est jamais coupé. */
   0%,
   100% {
-    box-shadow:
-      0 0 0.5rem 0.1rem rgb(251 191 36 / 0.45),
-      0 0 1.2rem 0.2rem rgb(249 115 22 / 0.25);
+    box-shadow: 0 0 0.4rem 0.05rem rgb(250 204 21 / 0.25);
   }
   50% {
-    box-shadow:
-      0 0 0.8rem 0.25rem rgb(251 191 36 / 0.65),
-      0 0 1.8rem 0.4rem rgb(249 115 22 / 0.4);
+    box-shadow: 0 0 0.6rem 0.15rem rgb(250 204 21 / 0.4);
   }
 }
 
 .tuile-rayonnante {
-  background: radial-gradient(circle at 50% 25%, #fffbeb 0%, #fde68a 55%, #fdba74 100%);
-  animation: rayonner 2.8s ease-in-out infinite;
+  background: radial-gradient(circle at 50% 25%, #fffef5 0%, #fef9c3 60%, #fef08a 100%);
+  animation: rayonner 3.2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tuile-rayonnante {
     animation: none;
-    box-shadow: 0 0 0.8rem 0.25rem rgb(251 191 36 / 0.55);
+    box-shadow: 0 0 0.5rem 0.1rem rgb(250 204 21 / 0.3);
   }
 }
 

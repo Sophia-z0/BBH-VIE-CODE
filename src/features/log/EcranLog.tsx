@@ -150,7 +150,7 @@ function Plan({ titre, groupes, onLog }: { titre: string; groupes: Groupe[]; onL
       {groupes.map(([groupe, liste]) => (
         <div key={groupe}>
           <h3 className="px-4 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h3>
-          <div className="sans-barre flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-3">
+          <div className="sans-barre flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4">
             {liste.map((tache) => (
               <button
                 key={tache.id}
