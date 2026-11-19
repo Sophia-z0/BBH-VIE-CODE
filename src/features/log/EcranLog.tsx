@@ -137,55 +137,37 @@ export function EcranLog() {
   )
 }
 
-/** Un plan (pièces ou reste) : ses groupes, le quotidien en grandes tuiles d'abord, l'occasionnel en petites tuiles. */
+/**
+ * Un plan (pièces ou reste) : une ligne par groupe, qui défile seulement à l'horizontale.
+ * Toutes les tuiles ont la même taille, donc toutes les lignes la même hauteur.
+ * Quotidien en tête, en tuiles blanches ; occasionnel ensuite, en tuiles qui rayonnent.
+ */
 function Plan({ titre, groupes, onLog }: { titre: string; groupes: Groupe[]; onLog: (tache: Tache) => void }) {
   if (groupes.length === 0) return null
   return (
-    <section className="flex flex-col gap-4 rounded-3xl bg-orange/5 p-3">
-      <h2 className="px-1 text-lg font-bold">{titre}</h2>
-      {groupes.map(([groupe, liste]) => {
-        const quotidien = liste.filter((t) => t.everyday)
-        const occasionnel = liste.filter((t) => !t.everyday)
-        return (
-          <div key={groupe}>
-            <h3 className="mb-2 px-1 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h3>
-            {quotidien.length > 0 && (
-              <div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {quotidien.map((tache) => (
-                  <button
-                    key={tache.id}
-                    type="button"
-                    onClick={() => onLog(tache)}
-                    className="flex min-h-28 flex-col items-start justify-between rounded-2xl bg-white p-3 text-left shadow-sm transition active:scale-95 active:bg-orange/10"
-                  >
-                    <span className="text-3xl">{tache.emoji}</span>
-                    <span className="text-sm leading-tight font-semibold">{tache.name}</span>
-                    <span className="text-xs">{'⭐'.repeat(tache.stars)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {occasionnel.length > 0 && (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {occasionnel.map((tache) => (
-                  <button
-                    key={tache.id}
-                    type="button"
-                    onClick={() => onLog(tache)}
-                    className="flex items-center gap-2 rounded-xl bg-white/60 px-2 py-2 text-left transition active:scale-95 active:bg-orange/10"
-                  >
-                    <span className="text-xl">{tache.emoji}</span>
-                    <span className="flex-1 text-xs leading-tight">
-                      {tache.name}
-                      <span className="block text-[10px]">{'⭐'.repeat(tache.stars)}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
+    <section className="-mx-4 flex flex-col gap-1">
+      <h2 className="px-4 text-lg font-bold">{titre}</h2>
+      {groupes.map(([groupe, liste]) => (
+        <div key={groupe}>
+          <h3 className="px-4 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h3>
+          <div className="sans-barre flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-3">
+            {liste.map((tache) => (
+              <button
+                key={tache.id}
+                type="button"
+                onClick={() => onLog(tache)}
+                className={`flex h-40 w-28 flex-none snap-start flex-col items-center justify-between rounded-2xl p-3 text-center transition active:scale-95 ${
+                  tache.everyday ? 'bg-white shadow-sm active:bg-orange/10' : 'tuile-rayonnante'
+                }`}
+              >
+                <span className="text-4xl">{tache.emoji}</span>
+                <span className="line-clamp-3 text-xs leading-tight font-semibold">{tache.name}</span>
+                <span className="text-xs">{'⭐'.repeat(tache.stars)}</span>
+              </button>
+            ))}
           </div>
-        )
-      })}
+        </div>
+      ))}
     </section>
   )
 }

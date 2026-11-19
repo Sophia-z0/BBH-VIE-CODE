@@ -32,3 +32,38 @@ body {
     opacity: 0;
   }
 }
+
+/* Tuiles des tâches occasionnelles (onglet tâches) : elles rayonnent pour donner envie. */
+@keyframes rayonner {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0.5rem 0.1rem rgb(251 191 36 / 0.45),
+      0 0 1.2rem 0.2rem rgb(249 115 22 / 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0.8rem 0.25rem rgb(251 191 36 / 0.65),
+      0 0 1.8rem 0.4rem rgb(249 115 22 / 0.4);
+  }
+}
+
+.tuile-rayonnante {
+  background: radial-gradient(circle at 50% 25%, #fffbeb 0%, #fde68a 55%, #fdba74 100%);
+  animation: rayonner 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tuile-rayonnante {
+    animation: none;
+    box-shadow: 0 0 0.8rem 0.25rem rgb(251 191 36 / 0.55);
+  }
+}
+
+/* Défilement horizontal sans barre visible. */
+.sans-barre {
+  scrollbar-width: none;
+}
+.sans-barre::-webkit-scrollbar {
+  display: none;
+}

@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (onglet tâches : lignes qui défilent, tuiles qui rayonnent)
+
+- **Une ligne par groupe**, qui défile seulement à l'horizontale (sans barre visible, arrêt sur chaque tuile) : toutes les tuiles sont verticales et de même taille, donc toutes les pièces et catégories ont la même hauteur. Les lignes vont jusqu'au bord de l'écran.
+- **Quotidien** en tête, en tuiles blanches ; **occasionnel** ensuite, en tuiles « qui rayonnent » (dégradé doré, halo qui pulse doucement, sans animation si le téléphone demande moins de mouvement) (`EcranLog.tsx`, `.tuile-rayonnante` dans `styles/index.css`).
+
 ## 2026-11-19 (onglet tâches : pièces / le reste, quotidien en premier ; loguer depuis le calendrier)
 
 - **Migration `0009_taches_quotidiennes_et_ordre.sql`** (à exécuter **avant** de pousser : l'app lit la nouvelle colonne) : colonne `tasks.everyday` (tâche du quotidien, `false` par défaut), groupe « cuisine » renommé « cuisine/salon », ordre logique et quotidien posés tâche par tâche (motifs ASCII, rejouable).
