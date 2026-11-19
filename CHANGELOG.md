@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (CLAUDE.md et CHANGELOG.md)
+
+- **`CLAUDE.md`** : instructions pour Claude Code (documents de référence, règles de travail, jamais de push ni de migration modifiée sans demande, entrée de CHANGELOG avant chaque commit, règles du jeu à ne pas casser). **`CHANGELOG.md`** créé, avec l'historique des étapes 0 à 7.
+
 ## 2026-11-19 (tâche à deux loguée par les deux : comptée une seule fois)
 
 - **Doublons « à deux »** : si les deux personnes loguent la même tâche « à deux », le même jour (heure de Paris), les étoiles étaient comptées deux fois. Elles ne comptent maintenant qu'une fois : `logsEnDouble` repère ces paires (appariement un pour un, au plus proche dans le temps) et `etoilesDe` ignore le log le plus tardif de chaque paire (`domain/calendrier.ts`). Effet sur le podium, le calendrier et les stats, y compris pour les semaines passées. Les badges ne changent pas (ils ne comptent que mes propres logs). Aucune migration, aucune règle Supabase modifiée.
