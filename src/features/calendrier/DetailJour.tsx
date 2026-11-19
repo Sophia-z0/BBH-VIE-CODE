@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { decomposer, logsEnDouble, nuitModifiable, type CleJour } from '../../domain/calendrier'
+import { Link } from 'react-router'
+import { aujourdhui, decomposer, logsEnDouble, nuitModifiable, type CleJour } from '../../domain/calendrier'
 import { etoilesDuLog, formaterEtoiles } from '../../domain/etoiles'
 import { semaineDe, parisVersInstant } from '../../domain/semaine'
 import type { Absence, Cadeau, Categorie, Depense, LogTache, Profil, Tache } from '../../domain/types'
@@ -35,7 +36,9 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
   })
   const absentCetteNuit = absences.some((a) => a.user_id === moi.id && a.night === jour)
   const modifiable = nuitModifiable(jour)
-  const autreMasque = autre && semaineDe(parisVersInstant(annee, mois, j, 12)).fin > new Date()
+  // On ne peut loguer que dans la semaine de jeu en cours, et pas dans le futur.
+  const loggable = jour <= aujourdhui() && parisVersInstant(annee, mois, j, 23) >= semaineDe().debut
+  const autreMasque =autre && semaineDe(parisVersInstant(annee, mois, j, 12)).fin > new Date()
 
   async function basculerPresence() {
     setErreur(null)
@@ -83,6 +86,17 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
           </span>
         </button>
         {erreur && <p className="mt-2 rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreur}</p>}
+
+        {loggable && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Link to={`/?jour=${jour}`} className="rounded-2xl bg-orange px-3 py-3 text-center text-sm font-semibold text-white active:scale-95">
+              ⭐ loguer une tâche ce jour-là
+            </Link>
+            <Link to={`/depenses?jour=${jour}`} className="rounded-2xl bg-rose px-3 py-3 text-center text-sm font-semibold text-white active:scale-95">
+              💖 loguer une dépense ce jour-là
+            </Link>
+          </div>
+        )}
 
         <ul className="mt-4 flex flex-col gap-2">
           {logs.map((log) => {

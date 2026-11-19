@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
-import { ChoixQuand, instantChoisi } from '../../components/ChoixQuand'
+import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
 import { Retour } from '../../components/Retour'
 import { aujourdhui, jourParis } from '../../domain/calendrier'
 import { encouragementAuHasard } from '../../domain/encouragements'
 import { serieEnCours } from '../../domain/scores'
+import { plansDeTaches, type Groupe } from '../../domain/taches'
 import { etoilesDuLog, formaterEtoiles, totalEtoiles } from '../../domain/etoiles'
 import type { LogTache, Tache } from '../../domain/types'
 import { formaterJourHeure } from '../../lib/dates'
@@ -28,9 +29,12 @@ export function EcranLog() {
   const { moi } = useFoyerPret()
   const { taches, mesLogs, setMesLogs, joursActifs, chargement, erreur } = useTachesSemaine(moi.id)
 
-  // Options du prochain log, remises à zéro après chaque log.
+  // Options du prochain log, remises à zéro après chaque log (« quand » revient au jour
+  // choisi dans le calendrier, s'il y en a un).
+  const [parametres] = useSearchParams()
+  const quandInitial = quandDuJour(parametres.get('jour'))
   const [aDeux, setADeux] = useState(false)
-  const [quand, setQuand] = useState<string | null>(null) // null = maintenant
+  const [quand, setQuand] = useState<string | null>(quandInitial) // null = maintenant
 
   const [celebration, setCelebration] = useState(0)
   const [retour, setRetour] = useState<Retour | null>(null)
@@ -39,13 +43,7 @@ export function EcranLog() {
 
   useEffect(() => () => clearTimeout(minuteurRetour.current), [])
 
-  const groupes = useMemo(() => {
-    const parGroupe = new Map<string, Tache[]>()
-    for (const tache of taches.filter((t) => t.active)) {
-      parGroupe.set(tache.group_name, [...(parGroupe.get(tache.group_name) ?? []), tache])
-    }
-    return [...parGroupe.entries()]
-  }, [taches])
+  const plans = useMemo(() => plansDeTaches(taches.filter((t) => t.active)), [taches])
 
   async function loguer(tache: Tache) {
     setErreurLog(null)
@@ -58,7 +56,7 @@ export function EcranLog() {
       clearTimeout(minuteurRetour.current)
       minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
       setADeux(false)
-      setQuand(null)
+      setQuand(quandInitial)
     } catch (e) {
       setErreurLog(messageErreur(e))
     }
@@ -95,25 +93,8 @@ export function EcranLog() {
 
       {erreurLog && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurLog}</p>}
 
-      {groupes.map(([groupe, liste]) => (
-        <section key={groupe}>
-          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {liste.map((tache) => (
-              <button
-                key={tache.id}
-                type="button"
-                onClick={() => loguer(tache)}
-                className="flex min-h-28 flex-col items-start justify-between rounded-2xl bg-white p-3 text-left shadow-sm transition active:scale-95 active:bg-orange/10"
-              >
-                <span className="text-3xl">{tache.emoji}</span>
-                <span className="text-sm leading-tight font-semibold">{tache.name}</span>
-                <span className="text-xs">{'⭐'.repeat(tache.stars)}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      ))}
+      <Plan titre="🏠 les pièces" groupes={plans.pieces} onLog={loguer} />
+      <Plan titre="🧺 le reste" groupes={plans.reste} onLog={loguer} />
 
       <Link to="/taches" className="text-center text-sm text-encre/60 underline">
         ✏️ modifier la liste des tâches
@@ -153,6 +134,59 @@ export function EcranLog() {
         />
       )}
     </div>
+  )
+}
+
+/** Un plan (pièces ou reste) : ses groupes, le quotidien en grandes tuiles d'abord, l'occasionnel en petites tuiles. */
+function Plan({ titre, groupes, onLog }: { titre: string; groupes: Groupe[]; onLog: (tache: Tache) => void }) {
+  if (groupes.length === 0) return null
+  return (
+    <section className="flex flex-col gap-4 rounded-3xl bg-orange/5 p-3">
+      <h2 className="px-1 text-lg font-bold">{titre}</h2>
+      {groupes.map(([groupe, liste]) => {
+        const quotidien = liste.filter((t) => t.everyday)
+        const occasionnel = liste.filter((t) => !t.everyday)
+        return (
+          <div key={groupe}>
+            <h3 className="mb-2 px-1 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h3>
+            {quotidien.length > 0 && (
+              <div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {quotidien.map((tache) => (
+                  <button
+                    key={tache.id}
+                    type="button"
+                    onClick={() => onLog(tache)}
+                    className="flex min-h-28 flex-col items-start justify-between rounded-2xl bg-white p-3 text-left shadow-sm transition active:scale-95 active:bg-orange/10"
+                  >
+                    <span className="text-3xl">{tache.emoji}</span>
+                    <span className="text-sm leading-tight font-semibold">{tache.name}</span>
+                    <span className="text-xs">{'⭐'.repeat(tache.stars)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {occasionnel.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {occasionnel.map((tache) => (
+                  <button
+                    key={tache.id}
+                    type="button"
+                    onClick={() => onLog(tache)}
+                    className="flex items-center gap-2 rounded-xl bg-white/60 px-2 py-2 text-left transition active:scale-95 active:bg-orange/10"
+                  >
+                    <span className="text-xl">{tache.emoji}</span>
+                    <span className="flex-1 text-xs leading-tight">
+                      {tache.name}
+                      <span className="block text-[10px]">{'⭐'.repeat(tache.stars)}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </section>
   )
 }
 

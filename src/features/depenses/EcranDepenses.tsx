@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Bouton } from '../../components/Bouton'
 import { Celebration } from '../../components/Celebration'
-import { ChoixQuand, instantChoisi } from '../../components/ChoixQuand'
+import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
 import { Retour } from '../../components/Retour'
 import { encouragementAuHasard, type Occasion } from '../../domain/encouragements'
@@ -27,7 +27,7 @@ interface RetourAffiche {
 
 /**
  * Ajout rapide : montant, puis un tap sur la catégorie, et c'est enregistré.
- * Accepte ?montant=12,50&tag=… dans l'adresse (raccourcis du téléphone).
+ * Accepte ?montant=12,50&tag=… dans l'adresse (raccourcis du téléphone), et ?jour=AAAA-MM-JJ (calendrier).
  */
 export function EcranDepenses() {
   const { moi } = useFoyerPret()
@@ -38,7 +38,9 @@ export function EcranDepenses() {
   const [montant, setMontant] = useState(parametres.get('montant') ?? '')
   const [tag, setTag] = useState(parametres.get('tag') ?? '')
   const [description, setDescription] = useState('')
-  const [quand, setQuand] = useState<string | null>(null)
+  // Jour choisi dans le calendrier (?jour=AAAA-MM-JJ) : « quand » y revient après chaque ajout.
+  const quandInitial = quandDuJour(parametres.get('jour'))
+  const [quand, setQuand] = useState<string | null>(quandInitial)
 
   const [celebration, setCelebration] = useState<{ cle: number; occasion: Occasion }>({ cle: 0, occasion: 'depense' })
   const [retour, setRetour] = useState<RetourAffiche | null>(null)
@@ -56,7 +58,7 @@ export function EcranDepenses() {
     setMontant('')
     setTag('')
     setDescription('')
-    setQuand(null)
+    setQuand(quandInitial)
   }
 
   async function enregistrerDepense(categorie: Categorie) {

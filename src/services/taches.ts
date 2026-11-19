@@ -2,7 +2,7 @@ import { toutesLesPages } from '../lib/pagination'
 import { supabase } from '../lib/supabase'
 import type { LogTache, Tache } from '../domain/types'
 
-const COLONNES_TACHE = 'id, name, group_name, emoji, stars, active, sort_order'
+const COLONNES_TACHE = 'id, name, group_name, emoji, stars, active, sort_order, everyday'
 const COLONNES_LOG = 'id, task_id, user_id, done_at, shared, stars'
 
 /** Catalogue du foyer, tâches désactivées comprises (elles restent utiles pour l'historique). */
@@ -20,6 +20,13 @@ export async function creerTache(householdId: string, tache: Pick<Tache, 'name' 
 export async function modifierTache(id: string, champs: Partial<Omit<Tache, 'id'>>) {
   const { error } = await supabase.from('tasks').update(champs).eq('id', id)
   if (error) throw error
+}
+
+/** Enregistre un nouvel ordre : chaque tâche reçoit sa position (×10), seules celles qui changent sont écrites. */
+export async function reordonnerTaches(taches: Tache[]) {
+  await Promise.all(
+    taches.map((tache, i) => ((i + 1) * 10 === tache.sort_order ? null : modifierTache(tache.id, { sort_order: (i + 1) * 10 }))),
+  )
 }
 
 /** Les étoiles, l'auteur·ice et le foyer sont remplis par la base, pour éviter toute triche. */

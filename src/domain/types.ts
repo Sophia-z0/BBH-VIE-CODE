@@ -29,6 +29,8 @@ export interface Tache {
   stars: number
   active: boolean
   sort_order: number
+  /** Tâche du quotidien : en premier dans son groupe (colonne ajoutée par la migration 0009). */
+  everyday: boolean
 }
 
 export interface LogTache {

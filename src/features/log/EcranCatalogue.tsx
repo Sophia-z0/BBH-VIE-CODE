@@ -1,25 +1,37 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { Bouton } from '../../components/Bouton'
+import { plansDeTaches } from '../../domain/taches'
 import type { Tache } from '../../domain/types'
 import { messageErreur } from '../../lib/erreurs'
-import { creerTache, modifierTache } from '../../services/taches'
+import { creerTache, modifierTache, reordonnerTaches } from '../../services/taches'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useTachesSemaine } from './useTachesSemaine'
 
-/** Ajouter, renommer, regrouper, changer les étoiles ou désactiver les tâches du foyer. */
+/** Ajouter, renommer, regrouper, ordonner, marquer « quotidien », changer les étoiles ou désactiver les tâches du foyer. */
 export function EcranCatalogue() {
   const { moi } = useFoyerPret()
   const { taches, chargement, erreur, recharger } = useTachesSemaine(moi.id)
   const [message, setMessage] = useState<string | null>(null)
 
   const groupes = useMemo(() => [...new Set(taches.map((t) => t.group_name))].sort(), [taches])
-  const actives = taches.filter((t) => t.active)
+  const plans = useMemo(() => plansDeTaches(taches.filter((t) => t.active)), [taches])
   const inactives = taches.filter((t) => !t.active)
 
   async function enregistrer(id: string, champs: Partial<Tache>) {
     try {
       await modifierTache(id, champs)
+      await recharger()
+    } catch (e) {
+      setMessage(messageErreur(e))
+    }
+  }
+
+  async function deplacer(liste: Tache[], de: number, vers: number) {
+    const nouvelle = [...liste]
+    ;[nouvelle[de], nouvelle[vers]] = [nouvelle[vers], nouvelle[de]]
+    try {
+      await reordonnerTaches(nouvelle)
       await recharger()
     } catch (e) {
       setMessage(messageErreur(e))
@@ -48,11 +60,23 @@ export function EcranCatalogue() {
         ))}
       </datalist>
 
-      <ul className="flex flex-col gap-3">
-        {actives.map((tache) => (
-          <LigneTache key={tache.id} tache={tache} onChange={(champs) => enregistrer(tache.id, champs)} />
-        ))}
-      </ul>
+      {[...plans.pieces, ...plans.reste].map(([groupe, liste]) => (
+        <section key={groupe}>
+          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-encre/50">{groupe}</h2>
+          <ul className="flex flex-col gap-3">
+            {liste.map((tache, i) => (
+              <LigneTache
+                key={tache.id}
+                tache={tache}
+                onChange={(champs) => enregistrer(tache.id, champs)}
+                // On ne déplace qu'entre tâches de même type : le quotidien reste toujours en tête.
+                onMonter={liste[i - 1]?.everyday === tache.everyday ? () => deplacer(liste, i, i - 1) : undefined}
+                onDescendre={liste[i + 1]?.everyday === tache.everyday ? () => deplacer(liste, i, i + 1) : undefined}
+              />
+            ))}
+          </ul>
+        </section>
+      ))}
 
       {inactives.length > 0 && (
         <section>
@@ -75,7 +99,17 @@ export function EcranCatalogue() {
 }
 
 /** Chaque champ est enregistré dès qu'on le quitte. */
-function LigneTache({ tache, onChange }: { tache: Tache; onChange: (champs: Partial<Tache>) => void }) {
+function LigneTache({
+  tache,
+  onChange,
+  onMonter,
+  onDescendre,
+}: {
+  tache: Tache
+  onChange: (champs: Partial<Tache>) => void
+  onMonter?: () => void
+  onDescendre?: () => void
+}) {
   const [nom, setNom] = useState(tache.name)
   const [groupe, setGroupe] = useState(tache.group_name)
   const [emoji, setEmoji] = useState(tache.emoji)
@@ -98,6 +132,14 @@ function LigneTache({ tache, onChange }: { tache: Tache; onChange: (champs: Part
           onChange={(e) => setNom(e.target.value)}
           onBlur={() => nom.trim() && nom !== tache.name && onChange({ name: nom.trim() })}
         />
+        <span className="flex flex-col">
+          <button type="button" aria-label="monter" disabled={!onMonter} onClick={onMonter} className="px-2 text-encre/50 disabled:opacity-20">
+            ▲
+          </button>
+          <button type="button" aria-label="descendre" disabled={!onDescendre} onClick={onDescendre} className="px-2 text-encre/50 disabled:opacity-20">
+            ▼
+          </button>
+        </span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <ChoixEtoiles valeur={tache.stars} onChange={(stars) => onChange({ stars })} />
@@ -109,6 +151,15 @@ function LigneTache({ tache, onChange }: { tache: Tache; onChange: (champs: Part
           onChange={(e) => setGroupe(e.target.value)}
           onBlur={() => groupe.trim() && groupe !== tache.group_name && onChange({ group_name: groupe.trim() })}
         />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={tache.everyday}
+          className={`rounded-full px-3 py-1 text-sm font-semibold transition active:scale-95 ${tache.everyday ? 'bg-orange text-white' : 'bg-creme text-encre/60'}`}
+          onClick={() => onChange({ everyday: !tache.everyday })}
+        >
+          ☀️ quotidien
+        </button>
         <button type="button" className="ml-auto text-sm text-encre/50 underline" onClick={() => onChange({ active: false })}>
           retirer
         </button>

@@ -1,3 +1,4 @@
+import { aujourdhui } from '../domain/calendrier'
 import { semaineDe } from '../domain/semaine'
 import { versChampDateHeure } from '../lib/dates'
 import { classePuce } from './Puce'
@@ -26,6 +27,18 @@ export function ChoixQuand({ quand, setQuand }: { quand: string | null; setQuand
       </button>
     </span>
   )
+}
+
+/**
+ * « quand » pré-rempli pour un jour choisi dans le calendrier (AAAA-MM-JJ) : null (maintenant)
+ * pour aujourd'hui ou sans jour ; sinon midi ce jour-là, ramené dans la semaine de jeu en cours.
+ */
+export function quandDuJour(jour: string | null): string | null {
+  if (!jour || !/^\d{4}-\d{2}-\d{2}$/.test(jour) || jour === aujourdhui()) return null
+  const debut = semaineDe().debut
+  const midi = new Date(`${jour}T12:00`)
+  if (Number.isNaN(midi.getTime()) || midi > new Date()) return null
+  return versChampDateHeure(midi < debut ? new Date(debut.getTime() + 60_000) : midi)
 }
 
 /** Instant choisi : la date saisie, ou maintenant. */

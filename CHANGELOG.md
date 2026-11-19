@@ -3,6 +3,13 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (onglet tâches : pièces / le reste, quotidien en premier ; loguer depuis le calendrier)
+
+- **Migration `0009_taches_quotidiennes_et_ordre.sql`** (à exécuter **avant** de pousser : l'app lit la nouvelle colonne) : colonne `tasks.everyday` (tâche du quotidien, `false` par défaut), groupe « cuisine » renommé « cuisine/salon », ordre logique et quotidien posés tâche par tâche (motifs ASCII, rejouable).
+- **Onglet tâches** : deux plans, « 🏠 les pièces » (cuisine/salon, salle à manger, chambre, salle de bain, WC) puis « 🧺 le reste » (ménage, linge, déchets, plantes, courses, puis les groupes inconnus). Dans chaque groupe, les tâches du quotidien d'abord en grandes tuiles, l'occasionnel ensuite en petites tuiles discrètes (`domain/taches.ts`, `features/log/EcranLog.tsx`).
+- **Catalogue** (« modifier la liste des tâches ») : rangé par groupe, ▲ ▼ pour changer l'ordre (entre tâches de même type), interrupteur « ☀️ quotidien » (`EcranCatalogue.tsx`, `reordonnerTaches`).
+- **Calendrier** : dans le détail d'un jour de la semaine en cours, « ⭐ loguer une tâche ce jour-là » et « 💖 loguer une dépense ce jour-là » ouvrent l'onglet avec la date pré-remplie (`?jour=AAAA-MM-JJ`, midi ce jour-là ; la date reste choisie pour les logs suivants) (`DetailJour.tsx`, `quandDuJour` dans `ChoixQuand.tsx`).
+
 ## 2026-11-19 (CLAUDE.md et CHANGELOG.md)
 
 - **`CLAUDE.md`** : instructions pour Claude Code (documents de référence, règles de travail, jamais de push ni de migration modifiée sans demande, entrée de CHANGELOG avant chaque commit, règles du jeu à ne pas casser). **`CHANGELOG.md`** créé, avec l'historique des étapes 0 à 7.
