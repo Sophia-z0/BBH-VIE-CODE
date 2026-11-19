@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-19 (ticket de caisse en pause)
+
+- **Tuile « ticket de caisse » masquée** (`TICKETS_ACTIFS = false` dans `EcranDepenses.tsx`) et colonne `items` plus lue (`services/depenses.ts`) : l'app peut être publiée sans la migration 0010 ni la fonction `lire-ticket`. Pour rallumer : migration 0010, clé Anthropic, fonction déployée, puis remettre `items` dans `COLONNES_DEPENSE` et passer `TICKETS_ACTIFS` à `true`.
+
 ## 2026-11-19 (ticket de caisse : petit modèle)
 
 - **`lire-ticket`** passe à Claude Haiku 5.5 (effort bas) au lieu de Claude Opus 5.5 : environ 0,1 centime par ticket au lieu de quelques centimes. Plus de relance automatique sur un autre modèle en cas de refus (pas proposée pour Haiku) ; un refus renvoie « lecture refusée » (`supabase/functions/lire-ticket/index.ts`, `README.md`).

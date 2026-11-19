@@ -29,6 +29,8 @@ interface RetourAffiche {
 
 const CLE_CADEAU = 'cadeau'
 const CLE_TICKET = 'ticket'
+/** Lecture des tickets en pause : à rallumer une fois la clé Anthropic, la migration 0010 et la fonction en place. */
+const TICKETS_ACTIFS = false
 
 /**
  * Ajout rapide : montant, puis un tap sur la catégorie, et c'est enregistré.
@@ -231,16 +233,18 @@ export function EcranDepenses() {
           <span className="line-clamp-3 text-xs leading-tight font-semibold">offrir au foyer</span>
           <span className="text-[10px] leading-tight text-encre/60">hors dépenses</span>
         </TuileRetournable>
-        <TuileRetournable
-          dos={dosDe(CLE_TICKET)}
-          onTap={() => champPhoto.current?.click()}
-          onFermer={fermerRetour}
-          classeFace="bg-white shadow-sm active:bg-rose/10"
-        >
-          <span className="text-4xl">🧾</span>
-          <span className="line-clamp-3 text-xs leading-tight font-semibold">ticket de caisse</span>
-          <span className="text-xs">📷</span>
-        </TuileRetournable>
+        {TICKETS_ACTIFS && (
+          <TuileRetournable
+            dos={dosDe(CLE_TICKET)}
+            onTap={() => champPhoto.current?.click()}
+            onFermer={fermerRetour}
+            classeFace="bg-white shadow-sm active:bg-rose/10"
+          >
+            <span className="text-4xl">🧾</span>
+            <span className="line-clamp-3 text-xs leading-tight font-semibold">ticket de caisse</span>
+            <span className="text-xs">📷</span>
+          </TuileRetournable>
+        )}
         {categories
           .filter((c) => c.active)
           .map((c) => (
