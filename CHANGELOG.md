@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (pile : son aussi sur Android)
+
+- **Pile de cartes** : le cliquetis sonore joue maintenant partout, Android compris, en plus d'une vibration encore un peu plus marquée (14 ms au toucher, 8 ms par carte) (`lib/cliquetis.ts`).
+
 ## 2026-11-20 (pile : vibration plus marquée, cliquetis sur iPhone)
 
 - **Pile de cartes** : vibration un peu plus forte sur Android (10 ms au toucher, 5 ms par carte, au lieu de 6 et 3). Sur iPhone, qui ne vibre pas depuis le web, un petit cliquetis sonore de carton à la place, coupé en mode silencieux (`lib/cliquetis.ts`). Sur ordinateur aussi, le cliquetis sonore (la vibration n'est utilisée que sur écran tactile).

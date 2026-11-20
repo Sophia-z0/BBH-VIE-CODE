@@ -1,11 +1,11 @@
 /**
- * Retour sensoriel de la pile de cartes : micro-vibration sur Android,
- * petit cliquetis sonore là où le web ne peut pas vibrer (iPhone).
+ * Retour sensoriel de la pile de cartes : petit cliquetis sonore partout,
+ * plus une micro-vibration sur écran tactile qui sait vibrer (Android ; l'iPhone ne vibre pas depuis le web).
  */
 
 /** Durées de vibration (ms) : le toucher de la pile, puis chaque carte qui retombe. */
-const VIBRATION_TOUCHER = 10
-const VIBRATION_CARTE = 5
+const VIBRATION_TOUCHER = 14
+const VIBRATION_CARTE = 8
 
 // Chrome sur ordinateur expose vibrate() sans rien pour vibrer : on ne vibre que sur un écran tactile.
 const peutVibrer =
@@ -50,11 +50,11 @@ function clic(fort: boolean) {
 /** Toucher de la pile (à appeler dans le geste, pour débloquer le son sur iPhone). */
 export function cliquetisToucher() {
   if (peutVibrer) navigator.vibrate(VIBRATION_TOUCHER)
-  else clic(true)
+  clic(true)
 }
 
 /** Une carte qui retombe sur la pile. */
 export function cliquetisCarte() {
   if (peutVibrer) navigator.vibrate(VIBRATION_CARTE)
-  else clic(false)
+  clic(false)
 }
