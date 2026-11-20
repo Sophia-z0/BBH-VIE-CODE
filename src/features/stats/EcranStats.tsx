@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { BarreRepartition } from '../../components/BarreRepartition'
 import { classePuce } from '../../components/Puce'
-import { decomposer, jourParis } from '../../domain/calendrier'
+import { decomposer, estPremierMois, jourParis } from '../../domain/calendrier'
 import { formaterEtoiles } from '../../domain/etoiles'
 import { type Badge, badgesDePersonne, derniereSemaineRevelee, moisDe, resultatCoeurs, resultatEtoiles } from '../../domain/scores'
 import {
@@ -69,6 +69,7 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
   const report = donnees.revenus.length > 0 ? reportPour(membres, donnees.revenus, donnees.depenses, trimestreDe(new Date(p.fin.getTime() - 1))) : null
 
   function changerMois(delta: number) {
+    if (delta < 0 && estPremierMois(moisChoisi.annee, moisChoisi.mois)) return
     const d = new Date(Date.UTC(moisChoisi.annee, moisChoisi.mois - 1 + delta, 1))
     setMoisChoisi({ annee: d.getUTCFullYear(), mois: d.getUTCMonth() + 1 })
   }
@@ -99,7 +100,7 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
 
       {choix === 'mois' && (
         <div className="flex items-center justify-between">
-          <button type="button" aria-label="mois précédent" className="px-3 text-2xl" onClick={() => changerMois(-1)}>
+          <button type="button" aria-label="mois précédent" className="px-3 text-2xl disabled:opacity-20" disabled={estPremierMois(moisChoisi.annee, moisChoisi.mois)} onClick={() => changerMois(-1)}>
             ‹
           </button>
           <span className="font-semibold">{nomMois}</span>

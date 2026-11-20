@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { aujourdhui } from '../../domain/calendrier'
+import { aujourdhui, DEBUT_APP } from '../../domain/calendrier'
 import { semaineDe } from '../../domain/semaine'
 import type { Cadeau, Categorie, Depense, LogTache, Absence, RevenuMensuel, Tache } from '../../domain/types'
 import { messageErreur } from '../../lib/erreurs'
@@ -28,7 +28,8 @@ export function useDonneesStats() {
   useEffect(() => {
     let annule = false
     const dernierReveal = semaineDe().debut
-    const origine = new Date(0)
+    // Rien avant le premier mois de l'app : ces données fausseraient les stats.
+    const origine = DEBUT_APP
     Promise.all([
       logsEntre(origine, dernierReveal),
       depensesEntre(origine, dernierReveal),

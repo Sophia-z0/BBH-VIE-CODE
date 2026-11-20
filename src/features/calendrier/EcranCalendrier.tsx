@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import {
   aujourdhui,
   decomposer,
+  estPremierMois,
   etoilesDe,
   jourParis,
   nuitsDeSemaine,
@@ -39,6 +40,7 @@ export function EcranCalendrier() {
   const maintenant = new Date()
 
   function changerMois(delta: number) {
+    if (delta < 0 && estPremierMois(mois.annee, mois.mois)) return
     const d = new Date(Date.UTC(mois.annee, mois.mois - 1 + delta, 1))
     setMois({ annee: d.getUTCFullYear(), mois: d.getUTCMonth() + 1 })
   }
@@ -48,7 +50,7 @@ export function EcranCalendrier() {
   return (
     <div className="flex flex-col gap-4 pt-4">
       <div className="flex items-center justify-between">
-        <button type="button" aria-label="mois précédent" className="px-3 py-1 text-2xl" onClick={() => changerMois(-1)}>
+        <button type="button" aria-label="mois précédent" className="px-3 py-1 text-2xl disabled:opacity-20" disabled={estPremierMois(mois.annee, mois.mois)} onClick={() => changerMois(-1)}>
           ‹
         </button>
         <h1 className="text-xl font-bold">{titre}</h1>

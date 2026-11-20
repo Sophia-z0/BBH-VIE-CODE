@@ -2,6 +2,12 @@ import { etoilesDuLog } from './etoiles'
 import { heureMuraleParis, parisVersInstant, semaineDe, type Semaine } from './semaine'
 import type { LogTache } from './types'
 
+/** Premier mois d'utilisation de l'app : calendrier et stats ne remontent pas avant (pas de données). */
+export const PREMIER_MOIS = { annee: 2026, mois: 11 }
+export const DEBUT_APP = parisVersInstant(PREMIER_MOIS.annee, PREMIER_MOIS.mois, 1, 0)
+/** Vrai si ce mois est le premier mois de l'app (ou avant) : pas de mois précédent à afficher. */
+export const estPremierMois = (annee: number, mois: number) => annee * 12 + mois <= PREMIER_MOIS.annee * 12 + PREMIER_MOIS.mois
+
 /** Jour calendaire au format AAAA-MM-JJ (même format que les nuits d'absence en base). */
 export type CleJour = string
 
