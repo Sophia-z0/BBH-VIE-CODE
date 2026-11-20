@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import type { LogTache, Tache } from '../domain/types'
 
 const COLONNES_TACHE = 'id, name, group_name, emoji, stars, active, sort_order, everyday'
-const COLONNES_LOG = 'id, task_id, user_id, done_at, shared, stars'
+const COLONNES_LOG = 'id, task_id, user_id, done_at, shared, stars, created_at'
 
 /** Catalogue du foyer, tâches désactivées comprises (elles restent utiles pour l'historique). */
 export async function listerTaches(): Promise<Tache[]> {

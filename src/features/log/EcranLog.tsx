@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
-import { PileDeCartes } from '../../components/PileDeCartes'
+import { PileDeCartes, parAjout } from '../../components/PileDeCartes'
 import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
 import { useCollecte } from '../../components/useCollecte'
 import { aujourdhui, jourParis } from '../../domain/calendrier'
@@ -97,7 +97,7 @@ export function EcranLog() {
   const pile = CARTES_COLLECTEES ? (
     <PileDeCartes
       atterrissage={collecte.atterrissage}
-      cartes={mesLogs
+      cartes={parAjout(mesLogs, (l) => l.created_at)
         .filter((l) => l.id !== collecte.enVol)
         .map((l) => {
           const t = nomTache(l.task_id)

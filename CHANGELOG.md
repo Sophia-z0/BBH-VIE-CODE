@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (pile de cartes : ordre d'ajout)
+
+- **Pile de cartes** : elle suit l'ordre d'ajout dans l'app (colonne `created_at`, déjà en base), plus la date du log. Une tâche ou une dépense logée pour hier se pose donc sur le dessus de la pile. Les listes « mes logs » et « mes entrées » restent chronologiques. Les dépenses récurrentes, générées automatiquement, restent sous la pile (`PileDeCartes.tsx`, `services/taches.ts`, `services/depenses.ts`).
+
 ## 2026-11-20 (ticket : date et heure d'achat)
 
 - **Ticket de caisse** : la lecture cherche aussi l'heure d'achat, et la date est remise au bon format même si elle revient en « 19/11/26 » ou « 19.11.2026 ». Le panneau affiche ce qui a été lu (« 🗓️ jeu. 19/11 à 18h42 »), ou explique pourquoi la date choisie à l'écran est utilisée à la place (date illisible, ou hors de la semaine en cours). Les dépenses sont enregistrées à cette date et heure (`lire-ticket/index.ts`, `services/ticket.ts`, `PanneauTicket.tsx`, `EcranDepenses.tsx`).

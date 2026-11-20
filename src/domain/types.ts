@@ -41,6 +41,8 @@ export interface LogTache {
   task_id: string
   user_id: string
   done_at: string
+  /** Moment de l'ajout dans l'app (ordre de la pile de cartes). */
+  created_at?: string
   shared: boolean
   stars: number
 }
@@ -68,6 +70,8 @@ export interface Depense {
   tag: string | null
   note: string | null
   spent_at: string
+  /** Moment de l'ajout dans l'app (ordre de la pile de cartes). */
+  created_at?: string
   recurring_id: string | null
   /** Articles retenus quand la dépense vient d'un ticket de caisse (migration 0010). */
   items?: ArticleTicket[] | null
@@ -86,6 +90,8 @@ export interface Cadeau {
   description: string
   estimated_cents: number
   given_at: string
+  /** Moment de l'ajout dans l'app (ordre de la pile de cartes). */
+  created_at?: string
 }
 
 export interface DepenseRecurrente {

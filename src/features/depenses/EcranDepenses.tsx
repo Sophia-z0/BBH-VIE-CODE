@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { BandeauSemaine } from '../../components/BandeauSemaine'
-import { PileDeCartes } from '../../components/PileDeCartes'
+import { PileDeCartes, parAjout } from '../../components/PileDeCartes'
 import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
 import { useCollecte } from '../../components/useCollecte'
 import { encouragementAuHasard, type Occasion } from '../../domain/encouragements'
@@ -211,7 +211,8 @@ export function EcranDepenses() {
   const pile = CARTES_COLLECTEES ? (
     <PileDeCartes
       atterrissage={collecte.atterrissage}
-      cartes={entrees
+      // Les dépenses récurrentes, générées automatiquement, restent sous la pile.
+      cartes={parAjout(entrees, (e) => (e.type === 'depense' && e.valeur.recurring_id ? undefined : e.valeur.created_at))
         .filter((e) => e.valeur.id !== collecte.enVol)
         .map((e) =>
           e.type === 'depense'

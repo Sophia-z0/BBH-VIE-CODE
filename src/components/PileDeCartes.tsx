@@ -11,6 +11,14 @@ export interface CartePile {
 
 const VISIBLES = 6
 
+/**
+ * Ordre de la pile : la dernière carte ajoutée au-dessus, quelle que soit la date du log
+ * (un log d'hier ajouté maintenant se pose sur la pile). `ajout` vide = tout en dessous.
+ */
+export function parAjout<T>(entrees: T[], ajout: (e: T) => string | undefined): T[] {
+  return [...entrees].sort((a, b) => (ajout(b) ?? '').localeCompare(ajout(a) ?? ''))
+}
+
 /** Pose stable d'une carte (tirée de son id) : un tas un peu de travers, jamais une colonne droite. */
 export function poseDe(id: string): Pose {
   let h = 0
