@@ -7,7 +7,9 @@
 const VIBRATION_TOUCHER = 10
 const VIBRATION_CARTE = 5
 
-const peutVibrer = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
+// Chrome sur ordinateur expose vibrate() sans rien pour vibrer : on ne vibre que sur un écran tactile.
+const peutVibrer =
+  typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function' && window.matchMedia('(pointer: coarse)').matches
 
 let audio: AudioContext | null = null
 

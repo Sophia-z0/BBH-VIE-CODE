@@ -5,7 +5,7 @@ sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
 ## 2026-11-20 (pile : vibration plus marquée, cliquetis sur iPhone)
 
-- **Pile de cartes** : vibration un peu plus forte sur Android (10 ms au toucher, 5 ms par carte, au lieu de 6 et 3). Sur iPhone, qui ne vibre pas depuis le web, un petit cliquetis sonore de carton à la place, coupé en mode silencieux (`lib/cliquetis.ts`).
+- **Pile de cartes** : vibration un peu plus forte sur Android (10 ms au toucher, 5 ms par carte, au lieu de 6 et 3). Sur iPhone, qui ne vibre pas depuis le web, un petit cliquetis sonore de carton à la place, coupé en mode silencieux (`lib/cliquetis.ts`). Sur ordinateur aussi, le cliquetis sonore (la vibration n'est utilisée que sur écran tactile).
 
 ## 2026-11-20 (calendrier et stats depuis novembre 2026)
 
