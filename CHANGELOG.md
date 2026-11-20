@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (pile : vibration un peu plus douce)
+
+- **Pile de cartes** : vibration adoucie, 12 ms au toucher et 8 ms par carte (`lib/cliquetis.ts`).
+
 ## 2026-11-20 (pile : vibration rétablie sur Samsung)
 
 - **Pile de cartes** : la vibration ne marchait plus sur certains Samsung (pointeur déclaré « fin ») ; l'écran tactile est maintenant détecté par ses points de contact. Tics courts façon retour tactile : 15 ms au toucher, 10 ms par carte (`lib/cliquetis.ts`).

@@ -4,8 +4,8 @@
  */
 
 /** Durées de vibration (ms), courtes comme un retour tactile : le toucher de la pile, puis chaque carte qui retombe. */
-const VIBRATION_TOUCHER = 15
-const VIBRATION_CARTE = 10
+const VIBRATION_TOUCHER = 12
+const VIBRATION_CARTE = 8
 
 // Chrome sur ordinateur expose vibrate() sans rien pour vibrer : on ne vibre que sur un écran tactile.
 // (Pas de « pointer: coarse » : les Samsung à stylet déclarent un pointeur fin et ne vibraient plus.)
