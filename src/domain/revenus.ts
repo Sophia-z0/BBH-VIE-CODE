@@ -183,7 +183,7 @@ export function contexteRevenus(personnes: Profil[], revenus: RevenuMensuel[], d
 // --- Messages bienveillants ------------------------------------------------
 
 /** Moyenne des mois renseignés parmi `mois`, ou null si aucun. */
-function moyenneSur(idPersonne: string, revenus: RevenuMensuel[], mois: CleMois[]): number | null {
+export function moyenneSur(idPersonne: string, revenus: RevenuMensuel[], mois: CleMois[]): number | null {
   const siens = revenusDe(idPersonne, revenus)
   const valeurs = mois.map((m) => siens.get(m)).filter((v): v is number => v !== undefined)
   return valeurs.length === 0 ? null : valeurs.reduce((t, v) => t + v, 0) / valeurs.length
@@ -223,4 +223,49 @@ export function messageRevenu(idPersonne: string, avant: RevenuMensuel[], apres:
   if (cetteAnnee !== null && anneeDerniere !== null && cetteAnnee > anneeDerniere)
     return `✨ Ta moyenne augmente par rapport à l'année dernière, continue comme ça !`
   return null
+}
+
+// --- Le foyer dans les revenus ----------------------------------------------
+
+/** Revenu moyen sur les 12 derniers mois terminés, et sur l'année civile en cours (mois renseignés). */
+export function moyennesRevenu(idPersonne: string, revenus: RevenuMensuel[], maintenant = new Date()) {
+  const actuel = moisDeDate(maintenant)
+  const annee = Number(actuel.slice(0, 4))
+  return {
+    douzeMois: moyenneSur(idPersonne, revenus, Array.from({ length: 12 }, (_, i) => moisDecale(actuel, -(i + 1)))),
+    annee,
+    anneeCivile: moyenneSur(idPersonne, revenus, Array.from({ length: 12 }, (_, i) => cleMois(annee, i + 1)).filter((m) => m <= actuel)),
+  }
+}
+
+export interface PartDuMois {
+  personne: Profil
+  depense: number
+  /** Revenu réel du mois, ou à défaut le revenu lissé ; null si aucun. */
+  revenu: number | null
+  /** Revenu réel (true) ou estimé (false). */
+  reel: boolean
+  /** depense / revenu, ou null sans revenu. */
+  part: number | null
+  /** Ce qui reste après sa part du foyer. */
+  reste: number | null
+  sousMinimum: boolean
+}
+
+/** Pour un mois : ce que chacun·e a dépensé pour le foyer, rapporté à son revenu, et le minimum perso. */
+export function partDuMois(personne: Profil, revenus: RevenuMensuel[], depenses: Depense[], mois: CleMois): PartDuMois {
+  const depense = depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === mois).reduce((t, d) => t + d.amount_cents, 0)
+  const reel = revenuReel(personne, revenus, mois)
+  const revenu = reel ?? revenuLisse(personne, revenus, mois)
+  const reste = revenu === null ? null : revenu - depense
+  const minimum = personne.personal_minimum_cents ?? null
+  return {
+    personne,
+    depense,
+    revenu,
+    reel: reel !== null,
+    part: revenu ? depense / revenu : null,
+    reste,
+    sousMinimum: minimum !== null && minimum > 0 && reste !== null && reste < minimum,
+  }
 }

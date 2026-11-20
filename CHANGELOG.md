@@ -3,6 +3,12 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (le foyer dans nos revenus, minimum perso)
+
+- **Stats › 💶 le foyer dans nos revenus** (sous dépenses) : pour chaque mois terminé et révélé, part de son revenu que chacun·e a dépensée pour le foyer (revenu réel, sinon estimé) ; revenus moyens de chacun·e sur 12 mois glissants et sur l'année civile.
+- **Minimum perso** (réglages › mon profil, facultatif) : alerte sur l'écran dépenses « Ce mois-ci, ta part des dépenses du foyer ne te laisse pas ton minimum. » ; option pour que l'autre voie l'alerte dans les stats (jamais le montant). Migration `0013_minimum_perso.sql`.
+- **Badges** : 🤝 duo de choc revient (chacun·e plus de 30 ⭐ la même semaine), à côté de 👩‍❤️‍👨 à 2 c’est mieux ! ; 🐓 s'appelle « de p’tit lève-tôt ».
+
 ## 2026-11-20 (cérémonie du dimanche, objectifs fêtés, messages de revenus)
 
 - **Cérémonie du dimanche** (`features/podium/Ceremonie.tsx`, `PorteCeremonie.tsx`) : à la première ouverture après le reveal de 18 h, plein écran obligatoire avant tout log. Un tap révèle : étoiles de chacun·e (compteur qui grimpe, 👑), dépenses et 🎁, remise des badges, remise officielle des objectifs atteints, sous une pluie d'émojis. Une fois par appareil. Retour arrière : `CEREMONIE_OBLIGATOIRE = false` dans `lib/options.ts`.

@@ -23,10 +23,13 @@ export function EcranReglages() {
   const [couleur, setCouleur] = useState(moi.color)
   const [revenu, setRevenu] = useState(moi.monthly_income_cents === null ? '' : String(moi.monthly_income_cents / 100))
   const [genre, setGenre] = useState<Genre | null>(moi.gender ?? null)
+  const [minimum, setMinimum] = useState(moi.personal_minimum_cents ? String(moi.personal_minimum_cents / 100) : '')
+  const [partageMinimum, setPartageMinimum] = useState(!!moi.share_minimum)
   const [message, setMessage] = useState<string | null>(null)
 
   async function enregistrer(evenement: FormEvent) {
     evenement.preventDefault()
+    const centimesMinimum = minimum.trim() === '' ? null : Math.round(Number(minimum.replace(',', '.')) * 100)
     try {
       await modifierMonProfil(moi.id, {
         display_name: prenom.trim(),
@@ -34,6 +37,9 @@ export function EcranReglages() {
         monthly_income_cents: revenu.trim() === '' ? null : Math.round(Number(revenu.replace(',', '.')) * 100),
         // Envoyé seulement s'il change : sans la migration 0012, la colonne n'existe pas.
         ...(genre !== (moi.gender ?? null) ? { gender: genre } : {}),
+        // Idem pour le minimum perso (migration 0013).
+        ...(centimesMinimum !== (moi.personal_minimum_cents ?? null) ? { personal_minimum_cents: centimesMinimum } : {}),
+        ...(partageMinimum !== !!moi.share_minimum ? { share_minimum: partageMinimum } : {}),
       })
       await recharger()
       setMessage('Enregistré ✅')
@@ -72,6 +78,23 @@ export function EcranReglages() {
           value={revenu}
           onChange={(e) => setRevenu(e.target.value)}
         />
+        <ChampTexte
+          libelle="mon minimum perso (€ / mois, facultatif)"
+          inputMode="decimal"
+          pattern="[0-9]+([.,][0-9]{1,2})?"
+          placeholder="charges perso, loisirs, resto…"
+          value={minimum}
+          onChange={(e) => setMinimum(e.target.value)}
+        />
+        {minimum.trim() !== '' && (
+          <label className="-mt-3 flex items-start gap-2 text-sm">
+            <input type="checkbox" className="mt-1" checked={partageMinimum} onChange={(e) => setPartageMinimum(e.target.checked)} />
+            <span>
+              {autre ? `${autre.display_name} peut voir` : "l'autre peut voir"} quand ma part du foyer ne me laisse pas mon minimum{' '}
+              <span className="text-encre/50">(jamais le montant)</span>
+            </span>
+          </label>
+        )}
         {message && <p className="text-sm">{message}</p>}
         <Bouton type="submit">enregistrer</Bouton>
       </form>

@@ -15,6 +15,7 @@ import { CARTES_COLLECTEES } from '../../lib/options'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { CarteRevenuManquant } from '../reglages/Revenus'
+import { AlerteMinimum } from './AlerteMinimum'
 import { PanneauTicket, type LotTicket } from './PanneauTicket'
 import { PucesEtiquettes } from './PucesEtiquettes'
 import { useDepensesSemaine } from './useDepensesSemaine'
@@ -237,6 +238,7 @@ export function EcranDepenses() {
       />
 
       <CarteRevenuManquant idMoi={moi.id} />
+      <AlerteMinimum moi={moi} depensesSemaine={depenses} />
 
       {/* Deux façons de saisir : taper le montant, ou scanner le ticket (on choisit la tuile après la lecture). */}
       <div className={`grid gap-3 ${TICKETS_ACTIFS ? 'grid-cols-2' : 'grid-cols-1'}`}>

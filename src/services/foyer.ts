@@ -44,7 +44,7 @@ export async function rejoindreFoyer(code: string, monNom: string, maCouleur: st
 
 export async function modifierMonProfil(
   id: string,
-  champs: Partial<Pick<Profil, 'display_name' | 'color' | 'monthly_income_cents' | 'notif_daily' | 'notif_daily_time' | 'notif_sunday' | 'gender'>>,
+  champs: Partial<Pick<Profil, 'display_name' | 'color' | 'monthly_income_cents' | 'notif_daily' | 'notif_daily_time' | 'notif_sunday' | 'gender' | 'personal_minimum_cents' | 'share_minimum'>>,
 ) {
   const { error } = await supabase.from('profiles').update(champs).eq('id', id)
   if (error) throw error

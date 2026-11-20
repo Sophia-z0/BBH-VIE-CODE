@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { BarreRepartition } from '../../components/BarreRepartition'
 import { classePuce } from '../../components/Puce'
-import { DEBUT_APP, decomposer, estPremierMois, jourParis } from '../../domain/calendrier'
+import { DEBUT_APP, decomposer, estPremierMois, jourParis, PREMIER_MOIS } from '../../domain/calendrier'
 import { BADGES, objectifsDe, palmares, semainesEntre, type DefBadge } from '../../domain/badges'
 import type { Profil } from '../../domain/types'
 import { formaterEtoiles } from '../../domain/etoiles'
@@ -20,7 +20,7 @@ import {
 } from '../../domain/stats'
 import { formaterEuros } from '../../lib/argent'
 import { PhraseReport } from '../../components/PhraseReport'
-import { contexteRevenus, reportPour, trimestreDe } from '../../domain/revenus'
+import { cleMois, contexteRevenus, moyennesRevenu, nomDuMois, partDuMois, reportPour, trimestreDe } from '../../domain/revenus'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useDonneesStats, type DonneesStats } from './useDonneesStats'
 
@@ -189,6 +189,8 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
         )}
       </Carte>
 
+      <RevenusDuFoyer donnees={donnees} />
+
       <Carte titre="🏷️ habitudes d'achat">
         <p className="text-xs text-encre/50">Qui achète quoi, d'après les étiquettes ajoutées aux dépenses.</p>
         <ListeDepliable
@@ -198,6 +200,66 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
         />
       </Carte>
     </div>
+  )
+}
+
+/**
+ * Le foyer dans nos revenus : mois terminés et révélés seulement (pas à la semaine),
+ * ce que chacun·e a dépensé pour le foyer rapporté à son revenu, et ses revenus moyens.
+ */
+function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
+  const { moi, membres } = useFoyerPret()
+  const mois: string[] = []
+  for (let i = 0; ; i++) {
+    const cle = cleMois(PREMIER_MOIS.annee, PREMIER_MOIS.mois + i)
+    const [a, m] = cle.split('-').map(Number)
+    if (moisDe(a, m).fin > donnees.dernierReveal) break
+    mois.unshift(cle)
+  }
+  // L'alerte « minimum » se voit pour soi, et pour l'autre seulement s'il ou elle la partage.
+  const alerteVisible = (p: Profil) => p.id === moi.id || !!p.share_minimum
+
+  return (
+    <Carte titre="💶 le foyer dans nos revenus">
+      <div className="grid grid-cols-2 gap-2">
+        {membres.map((p) => {
+          const m = moyennesRevenu(p.id, donnees.revenus)
+          return (
+            <div key={p.id} className="flex flex-col gap-1 rounded-2xl bg-creme p-3 text-xs">
+              <span className="text-sm font-bold" style={{ color: p.color }}>
+                {p.display_name}
+              </span>
+              <span>12 mois glissants : {m.douzeMois === null ? '—' : `${formaterEuros(Math.round(m.douzeMois))} / mois`}</span>
+              <span>
+                année {m.annee} : {m.anneeCivile === null ? '—' : `${formaterEuros(Math.round(m.anneeCivile))} / mois`}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      <SousTitre>part du revenu dépensée pour le foyer</SousTitre>
+      {mois.length === 0 ? (
+        <p className="text-sm text-encre/60">Le premier mois complet s'affichera ici une fois terminé et révélé.</p>
+      ) : (
+        mois.map((cle) => (
+          <div key={cle} className="flex flex-col gap-1">
+            <span className="text-sm font-semibold">{nomDuMois(cle)}</span>
+            {membres.map((p) => {
+              const r = partDuMois(p, donnees.revenus, donnees.depenses, cle)
+              return (
+                <p key={p.id} className="text-sm">
+                  <span style={{ color: p.color }}>●</span> {p.display_name} :{' '}
+                  {r.part === null
+                    ? `${formaterEuros(r.depense)} (revenu non renseigné)`
+                    : `${pourcent(r.part)} de son revenu${r.reel ? '' : ' estimé'} (${formaterEuros(r.depense)} sur ${formaterEuros(r.revenu ?? 0)})`}
+                  {r.sousMinimum && alerteVisible(p) && <span className="block text-xs text-red-700">⚠️ sa part du foyer ne lui a pas laissé son minimum perso</span>}
+                </p>
+              )
+            })}
+          </div>
+        ))
+      )}
+    </Carte>
   )
 }
 

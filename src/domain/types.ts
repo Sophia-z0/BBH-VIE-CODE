@@ -18,6 +18,10 @@ export interface Profil {
   notif_sunday: boolean
   /** Pour accorder les badges ; absent tant que la migration 0012 n'est pas passée ou pas choisi. */
   gender?: Genre | null
+  /** Minimum à garder chaque mois après sa part du foyer (migration 0013, facultatif). */
+  personal_minimum_cents?: number | null
+  /** L'autre voit l'alerte « sous son minimum » (jamais le montant). */
+  share_minimum?: boolean
 }
 
 /** elle = bibliƶatrice, il = bibliƶateur, iel = forme inclusive. */
