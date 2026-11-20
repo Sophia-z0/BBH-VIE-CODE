@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (pile : vibration plus marquée, cliquetis sur iPhone)
+
+- **Pile de cartes** : vibration un peu plus forte sur Android (10 ms au toucher, 5 ms par carte, au lieu de 6 et 3). Sur iPhone, qui ne vibre pas depuis le web, un petit cliquetis sonore de carton à la place, coupé en mode silencieux (`lib/cliquetis.ts`).
+
 ## 2026-11-20 (calendrier et stats depuis novembre 2026)
 
 - **Calendrier et stats** ne remontent plus avant novembre 2026, premier mois de l'app : la flèche ‹ est grisée sur novembre 2026, et les stats (dont « depuis le début » et « par mois ») ignorent tout ce qui est daté d'avant (`PREMIER_MOIS` dans `domain/calendrier.ts`).

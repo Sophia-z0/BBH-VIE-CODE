@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type Ref } from 'react'
 import { PILE_FIDGET } from '../lib/options'
+import { cliquetisCarte, cliquetisToucher } from '../lib/cliquetis'
 import type { Pose } from '../lib/envol'
 
 export interface CartePile {
@@ -66,12 +67,12 @@ export function PileDeCartes({
   function remuer() {
     vider()
     setCascade((n) => n + 1)
-    // Micro-vibration à chaque carte qui touche la pile (Android ; iPhone n'en a pas pour le web).
+    // Micro-vibration à chaque carte qui touche la pile (Android) ; cliquetis sonore sur iPhone.
     const n = Math.min(cartes.length, EN_CASCADE)
     const pasCascade = Math.min(PAS_MAX_MS, DUREE_CASCADE_MS / Math.max(n, 1))
-    navigator.vibrate?.(6)
+    cliquetisToucher()
     for (let i = 0; i < n; i++) {
-      minuteurs.current.push(setTimeout(() => navigator.vibrate?.(3), 120 + i * pasCascade + CHUTE_MS * 0.7))
+      minuteurs.current.push(setTimeout(cliquetisCarte, 120 + i * pasCascade + CHUTE_MS * 0.7))
     }
     minuteurs.current.push(setTimeout(() => setCascade(0), 120 + n * pasCascade + CHUTE_MS + 300))
   }
