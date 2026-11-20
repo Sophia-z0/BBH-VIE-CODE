@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (catégories de dépenses réorganisables)
+
+- **Catégories de dépenses** : boutons ▲▼ pour les réordonner, comme les tâches ; l'ordre est celui des tuiles de l'écran dépenses (dépenses › catégories, `EcranCategories.tsx`). Utilise le champ `sort_order` existant, sans migration.
+
 ## 2026-11-20 (pile : son aussi sur Android)
 
 - **Pile de cartes** : le cliquetis sonore joue maintenant partout, Android compris, en plus d'une vibration encore un peu plus marquée (14 ms au toucher, 8 ms par carte) (`lib/cliquetis.ts`).

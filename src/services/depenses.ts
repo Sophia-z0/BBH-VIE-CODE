@@ -27,6 +27,13 @@ export async function modifierCategorie(id: string, champs: Partial<Omit<Categor
   if (error) throw error
 }
 
+/** Enregistre un nouvel ordre des catégories (position ×10), comme pour les tâches. */
+export async function reordonnerCategories(categories: Categorie[]) {
+  await Promise.all(
+    categories.map((c, i) => ((i + 1) * 10 === c.sort_order ? null : modifierCategorie(c.id, { sort_order: (i + 1) * 10 }))),
+  )
+}
+
 // --- Dépenses ---------------------------------------------------------
 
 export async function ajouterDepense(depense: {

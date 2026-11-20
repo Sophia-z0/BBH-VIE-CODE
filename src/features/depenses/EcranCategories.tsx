@@ -3,10 +3,10 @@ import { Link } from 'react-router'
 import { Bouton } from '../../components/Bouton'
 import type { Categorie } from '../../domain/types'
 import { messageErreur } from '../../lib/erreurs'
-import { creerCategorie, listerCategories, modifierCategorie } from '../../services/depenses'
+import { creerCategorie, listerCategories, modifierCategorie, reordonnerCategories } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
 
-/** Ajouter, renommer, changer l'émoji ou retirer les catégories de dépenses. */
+/** Ajouter, renommer, changer l'émoji, ordonner ou retirer les catégories de dépenses (l'ordre est celui des tuiles). */
 export function EcranCategories() {
   const { moi } = useFoyerPret()
   const [categories, setCategories] = useState<Categorie[]>([])
@@ -33,6 +33,18 @@ export function EcranCategories() {
     }
   }
 
+  async function deplacer(de: number, vers: number) {
+    const nouvelle = [...categories]
+    ;[nouvelle[de], nouvelle[vers]] = [nouvelle[vers], nouvelle[de]]
+    setCategories(nouvelle)
+    try {
+      await reordonnerCategories(nouvelle)
+      await recharger()
+    } catch (e) {
+      setErreur(messageErreur(e))
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 pt-4">
       <div className="flex items-center justify-between">
@@ -52,15 +64,31 @@ export function EcranCategories() {
       {erreur && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreur}</p>}
 
       <ul className="flex flex-col gap-3">
-        {categories.map((c) => (
-          <LigneCategorie key={c.id} categorie={c} onChange={(champs) => enregistrer(c.id, champs)} />
+        {categories.map((c, i) => (
+          <LigneCategorie
+            key={c.id}
+            categorie={c}
+            onChange={(champs) => enregistrer(c.id, champs)}
+            onMonter={i > 0 ? () => deplacer(i, i - 1) : undefined}
+            onDescendre={i < categories.length - 1 ? () => deplacer(i, i + 1) : undefined}
+          />
         ))}
       </ul>
     </div>
   )
 }
 
-function LigneCategorie({ categorie, onChange }: { categorie: Categorie; onChange: (champs: Partial<Categorie>) => void }) {
+function LigneCategorie({
+  categorie,
+  onChange,
+  onMonter,
+  onDescendre,
+}: {
+  categorie: Categorie
+  onChange: (champs: Partial<Categorie>) => void
+  onMonter?: () => void
+  onDescendre?: () => void
+}) {
   const [nom, setNom] = useState(categorie.name)
   const [emoji, setEmoji] = useState(categorie.emoji)
 
@@ -81,6 +109,14 @@ function LigneCategorie({ categorie, onChange }: { categorie: Categorie; onChang
         onChange={(e) => setNom(e.target.value)}
         onBlur={() => nom.trim() && nom !== categorie.name && onChange({ name: nom.trim() })}
       />
+      <span className="flex flex-col">
+        <button type="button" aria-label="monter" disabled={!onMonter} onClick={onMonter} className="px-2 text-encre/50 disabled:opacity-20">
+          ▲
+        </button>
+        <button type="button" aria-label="descendre" disabled={!onDescendre} onClick={onDescendre} className="px-2 text-encre/50 disabled:opacity-20">
+          ▼
+        </button>
+      </span>
       <button type="button" className="text-sm text-encre/50 underline" onClick={() => onChange({ active: !categorie.active })}>
         {categorie.active ? 'retirer' : 'remettre'}
       </button>
