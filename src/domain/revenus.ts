@@ -241,8 +241,10 @@ export function moyennesRevenu(idPersonne: string, revenus: RevenuMensuel[], mai
 export interface PartDuMois {
   personne: Profil
   depense: number
-  /** Revenu réel du mois, ou à défaut le revenu lissé ; null si aucun. */
+  /** Revenu réel du mois (crédit déduit), ou à défaut le revenu lissé ; null si aucun. */
   revenu: number | null
+  /** Crédit déduit du revenu ce mois-là (0 si aucun). */
+  credit: number
   /** Revenu réel (true) ou estimé (false). */
   reel: boolean
   /** depense / revenu, ou null sans revenu. */
@@ -256,13 +258,16 @@ export interface PartDuMois {
 export function partDuMois(personne: Profil, revenus: RevenuMensuel[], depenses: Depense[], mois: CleMois): PartDuMois {
   const depense = depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === mois).reduce((t, d) => t + d.amount_cents, 0)
   const reel = revenuReel(personne, revenus, mois)
-  const revenu = reel ?? revenuLisse(personne, revenus, mois)
+  const credit = revenus.find((x) => x.user_id === personne.id && x.month.startsWith(mois))?.loan_cents ?? 0
+  const brut = reel ?? revenuLisse(personne, revenus, mois)
+  const revenu = brut === null ? null : Math.max(0, brut - credit)
   const reste = revenu === null ? null : revenu - depense
   const minimum = personne.personal_minimum_cents ?? null
   return {
     personne,
     depense,
     revenu,
+    credit,
     reel: reel !== null,
     part: revenu ? depense / revenu : null,
     reste,

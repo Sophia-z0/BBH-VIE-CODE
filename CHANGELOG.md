@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (crédit déduit du revenu, alerte minimum visible par les deux)
+
+- **Revenus** (réglages) : colonne « dont crédit » à côté de chaque mois (une fois le revenu saisi). La part du revenu dépensée pour le foyer (stats) et le minimum perso se calculent sur le revenu moins le crédit. Migration `0014_credit_mensuel.sql`.
+- **Minimum perso** : plus de case à cocher, l'alerte se voit toujours des deux dans les stats (jamais le montant) : « ⚠️ ce mois-ci, ta part des dépenses du foyer ne t’a pas laissé ton minimum » pour soi, « ⚠️ sa part du foyer ne lui a pas laissé son minimum perso » pour l'autre. La colonne `share_minimum` reste en base, inutilisée.
+
 ## 2026-11-20 (le foyer dans nos revenus, minimum perso)
 
 - **Stats › 💶 le foyer dans nos revenus** (sous dépenses) : pour chaque mois terminé et révélé, part de son revenu que chacun·e a dépensée pour le foyer (revenu réel, sinon estimé) ; revenus moyens de chacun·e sur 12 mois glissants et sur l'année civile.

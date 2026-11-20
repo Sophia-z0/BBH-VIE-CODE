@@ -7,7 +7,7 @@ import { depensesEntre } from '../../services/depenses'
 import { mesRevenus } from '../../services/revenus'
 
 /**
- * Alerte douce, pour moi seul·e : ce mois-ci, ma part des dépenses du foyer ne me laisse pas mon minimum perso.
+ * Alerte douce sur l'écran dépenses : ce mois-ci, ma part des dépenses du foyer ne me laisse pas mon minimum perso.
  * Mois en cours = mes dépenses avant cette semaine (chargées une fois) + celles de la semaine (à jour).
  */
 export function AlerteMinimum({ moi, depensesSemaine }: { moi: Profil; depensesSemaine: Depense[] }) {
@@ -35,7 +35,7 @@ export function AlerteMinimum({ moi, depensesSemaine }: { moi: Profil; depensesS
     <div className="flex flex-col gap-1 rounded-2xl bg-red-50 p-4 text-sm shadow-sm">
       <p className="font-semibold">🫶 Ce mois-ci, ta part des dépenses du foyer ne te laisse pas ton minimum.</p>
       <p className="text-xs text-encre/60">
-        Il te reste {formaterEuros(Math.max(0, r.reste ?? 0))} sur ton revenu{r.reel ? '' : ' estimé'}, pour un minimum de {formaterEuros(minimum)}.
+        Il te reste {formaterEuros(Math.max(0, r.reste ?? 0))} sur ton revenu{r.reel ? '' : ' estimé'}{r.credit > 0 ? ' (crédit déduit)' : ''}, pour un minimum de {formaterEuros(minimum)}.
         Peut-être l'occasion d'en parler ensemble.
       </p>
     </div>

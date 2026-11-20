@@ -93,6 +93,8 @@ export interface RevenuMensuel {
   /** Premier jour du mois, AAAA-MM-01. */
   month: string
   amount_cents: number
+  /** Part du revenu du mois partie dans un crédit (migration 0014), déduite pour la part du foyer et le minimum. */
+  loan_cents?: number | null
 }
 
 export interface ArticleTicket {

@@ -216,8 +216,6 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
     if (moisDe(a, m).fin > donnees.dernierReveal) break
     mois.unshift(cle)
   }
-  // L'alerte « minimum » se voit pour soi, et pour l'autre seulement s'il ou elle la partage.
-  const alerteVisible = (p: Profil) => p.id === moi.id || !!p.share_minimum
 
   return (
     <Carte titre="💶 le foyer dans nos revenus">
@@ -251,8 +249,12 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
                   <span style={{ color: p.color }}>●</span> {p.display_name} :{' '}
                   {r.part === null
                     ? `${formaterEuros(r.depense)} (revenu non renseigné)`
-                    : `${pourcent(r.part)} de son revenu${r.reel ? '' : ' estimé'} (${formaterEuros(r.depense)} sur ${formaterEuros(r.revenu ?? 0)})`}
-                  {r.sousMinimum && alerteVisible(p) && <span className="block text-xs text-red-700">⚠️ sa part du foyer ne lui a pas laissé son minimum perso</span>}
+                    : `${pourcent(r.part)} de son revenu${r.reel ? '' : ' estimé'}${r.credit > 0 ? ', crédit déduit' : ''} (${formaterEuros(r.depense)} sur ${formaterEuros(r.revenu ?? 0)})`}
+                  {r.sousMinimum && (
+                    <span className="block text-xs text-red-700">
+                      {p.id === moi.id ? '⚠️ ce mois-ci, ta part des dépenses du foyer ne t’a pas laissé ton minimum' : '⚠️ sa part du foyer ne lui a pas laissé son minimum perso'}
+                    </span>
+                  )}
                 </p>
               )
             })}

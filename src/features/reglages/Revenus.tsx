@@ -3,7 +3,7 @@ import { cleMois, messageRevenu, moisDeDate, moisDecale, nomDuMois, type CleMois
 import type { RevenuMensuel } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
-import { enregistrerRevenu, mesRevenus } from '../../services/revenus'
+import { enregistrerCredit, enregistrerRevenu, mesRevenus } from '../../services/revenus'
 
 /** Mes revenus saisis ; null tant que ce n'est pas chargé ou si la table n'existe pas encore (migration 0011). */
 function useMesRevenus(idMoi: string) {
@@ -111,6 +111,22 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
     }
   }
 
+  const creditDe = (mois: CleMois) => revenus.find((r) => r.month.startsWith(mois))?.loan_cents ?? null
+
+  async function enregistrerLeCredit(mois: CleMois, texte: string) {
+    const centimes = texte.trim() === '' ? null : texte.trim() === '0' ? 0 : lireMontant(texte)
+    if (texte.trim() !== '' && centimes === null) return setMessage('Montant illisible.')
+    if (centimes === creditDe(mois)) return
+    try {
+      const revenu = await enregistrerCredit(idMoi, mois, centimes)
+      setRevenus([...(revenus ?? []).filter((r) => !r.month.startsWith(mois)), revenu])
+      setMessage(`${nomDuMois(mois)} : crédit ${centimes === null ? 'effacé' : `de ${formaterEuros(centimes)} enregistré`}.`)
+    } catch (e) {
+      setMessage(messageErreur(e))
+    }
+  }
+  const enEuros = (centimes: number | null | undefined) => (centimes === null || centimes === undefined ? '' : String(centimes / 100).replace('.', ','))
+
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
@@ -133,7 +149,8 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
       </div>
       <p className="text-xs text-encre/60">
         Revenu net de chaque mois. La part juste des dépenses suit la moyenne de tes 6 derniers mois ; chaque trimestre, l'écart avec
-        tes revenus réels est reporté sur le trimestre suivant.
+        tes revenus réels est reporté sur le trimestre suivant. Le crédit du mois est déduit pour calculer la part du revenu dépensée
+        pour le foyer et ton minimum perso.
       </p>
       <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
         <span className="text-sm">moyenne {annee}</span>
@@ -145,17 +162,33 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
         </span>
       </div>
       <ul className="flex flex-col divide-y divide-orange/10 rounded-2xl bg-white">
+        <li className="flex items-center gap-2 px-4 pt-2 text-xs text-encre/50">
+          <span className="flex-1" />
+          <span className="w-24 text-right">revenu net</span>
+          <span className="w-20 text-right">dont crédit</span>
+        </li>
         {liste.map((mois) => (
-          <li key={mois} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
-            <span>{nomDuMois(mois)}</span>
+          <li key={mois} className="flex items-center gap-2 px-4 py-2 text-sm">
+            <span className="min-w-0 flex-1">{nomDuMois(mois)}</span>
             <input
               key={montantDe(mois) ?? 'vide'}
               inputMode="decimal"
               aria-label={`revenu net de ${nomDuMois(mois)}`}
               placeholder="—"
-              defaultValue={montantDe(mois) === undefined ? '' : String((montantDe(mois) ?? 0) / 100).replace('.', ',')}
+              defaultValue={enEuros(montantDe(mois))}
               onBlur={(e) => enregistrer(mois, e.target.value)}
-              className="w-28 rounded-lg bg-creme px-2 py-1 text-right font-semibold outline-none"
+              className="w-24 rounded-lg bg-creme px-2 py-1 text-right font-semibold outline-none"
+            />
+            {/* Le crédit complète un revenu déjà saisi. */}
+            <input
+              key={`credit-${creditDe(mois) ?? 'vide'}`}
+              inputMode="decimal"
+              aria-label={`crédit de ${nomDuMois(mois)}`}
+              placeholder="—"
+              disabled={montantDe(mois) === undefined}
+              defaultValue={enEuros(creditDe(mois))}
+              onBlur={(e) => enregistrerLeCredit(mois, e.target.value)}
+              className="w-20 rounded-lg bg-creme px-2 py-1 text-right outline-none disabled:opacity-30"
             />
           </li>
         ))}

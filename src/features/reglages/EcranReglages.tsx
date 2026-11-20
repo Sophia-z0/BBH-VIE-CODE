@@ -24,7 +24,6 @@ export function EcranReglages() {
   const [revenu, setRevenu] = useState(moi.monthly_income_cents === null ? '' : String(moi.monthly_income_cents / 100))
   const [genre, setGenre] = useState<Genre | null>(moi.gender ?? null)
   const [minimum, setMinimum] = useState(moi.personal_minimum_cents ? String(moi.personal_minimum_cents / 100) : '')
-  const [partageMinimum, setPartageMinimum] = useState(!!moi.share_minimum)
   const [message, setMessage] = useState<string | null>(null)
 
   async function enregistrer(evenement: FormEvent) {
@@ -39,7 +38,6 @@ export function EcranReglages() {
         ...(genre !== (moi.gender ?? null) ? { gender: genre } : {}),
         // Idem pour le minimum perso (migration 0013).
         ...(centimesMinimum !== (moi.personal_minimum_cents ?? null) ? { personal_minimum_cents: centimesMinimum } : {}),
-        ...(partageMinimum !== !!moi.share_minimum ? { share_minimum: partageMinimum } : {}),
       })
       await recharger()
       setMessage('Enregistré ✅')
@@ -86,15 +84,9 @@ export function EcranReglages() {
           value={minimum}
           onChange={(e) => setMinimum(e.target.value)}
         />
-        {minimum.trim() !== '' && (
-          <label className="-mt-3 flex items-start gap-2 text-sm">
-            <input type="checkbox" className="mt-1" checked={partageMinimum} onChange={(e) => setPartageMinimum(e.target.checked)} />
-            <span>
-              {autre ? `${autre.display_name} peut voir` : "l'autre peut voir"} quand ma part du foyer ne me laisse pas mon minimum{' '}
-              <span className="text-encre/50">(jamais le montant)</span>
-            </span>
-          </label>
-        )}
+        <p className="-mt-3 text-xs text-encre/50">
+          {autre ? autre.display_name : "L'autre"} verra seulement quand ta part du foyer ne te laisse pas ce minimum, jamais le montant.
+        </p>
         {message && <p className="text-sm">{message}</p>}
         <Bouton type="submit">enregistrer</Bouton>
       </form>
