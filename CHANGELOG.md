@@ -3,6 +3,14 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (dépenses comme les tâches, étiquettes, bandeaux, couleurs douces)
+
+- **Dépenses** : en haut, deux tuiles pour saisir, 💶 montant ou 🧾 ticket de caisse (📷 scanner). Dessous, une seule ligne de tuiles pour dire où va la dépense : 🎁 offrir au foyer, puis les catégories (`EcranDepenses.tsx`).
+- **Ticket de caisse** : après la lecture, on coche les articles puis on touche une tuile, catégorie ou 🎁. Un ticket offert au foyer devient un cadeau (le magasin pour description, le total coché pour valeur) (`PanneauTicket.tsx`).
+- **Étiquettes** : un appui long passe en mode « ranger », et toucher une étiquette ne la propose plus (mémorisé sur le téléphone ; les anciennes dépenses gardent leur étiquette) (`PucesEtiquettes.tsx`, `useDepensesSemaine.ts`).
+- **Bandeaux « mes étoiles » et « mes 💖 cette semaine »** plus petits et arrondis, le total à droite (`components/BandeauSemaine.tsx`).
+- **Couleurs douces** dans les réglages et à l'arrivée : lavande, menthe, pêche, rose poudré, bleu ciel, citron, corail, sauge. Le texte posé sur la couleur passe en brun foncé quand elle est claire (bandeaux, pastilles du calendrier) (`lib/couleurs.ts`, `ChoixCouleur.tsx`).
+
 ## 2026-11-20 (ticket de caisse rallumé)
 
 - **Tuile « ticket de caisse » de retour** dans les dépenses (`TICKETS_ACTIFS = true`), et colonne `items` relue : migration 0010, clé Anthropic et fonction `lire-ticket` sont en place. Les articles retenus s'affichent sous « 🧾 n articles » dans la liste.

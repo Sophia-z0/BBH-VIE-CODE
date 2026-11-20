@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
-import { classePuce } from '../../components/Puce'
+import { BandeauSemaine } from '../../components/BandeauSemaine'
 import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
 import { encouragementAuHasard, type Occasion } from '../../domain/encouragements'
 import type { Cadeau, Categorie, Depense } from '../../domain/types'
@@ -12,6 +12,7 @@ import { messageErreur } from '../../lib/erreurs'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { PanneauTicket, type TicketValide } from './PanneauTicket'
+import { PucesEtiquettes } from './PucesEtiquettes'
 import { useDepensesSemaine } from './useDepensesSemaine'
 
 const DUREE_ANNULATION_MS = 5000
@@ -28,7 +29,6 @@ interface RetourAffiche {
 }
 
 const CLE_CADEAU = 'cadeau'
-const CLE_TICKET = 'ticket'
 /** Lecture des tickets (fonction « lire-ticket ») : passer à false pour la masquer. */
 const TICKETS_ACTIFS = true
 
@@ -38,7 +38,7 @@ const TICKETS_ACTIFS = true
  */
 export function EcranDepenses() {
   const { moi } = useFoyerPret()
-  const { categories, etiquettes, depenses, setDepenses, cadeaux, setCadeaux, chargement, erreur } = useDepensesSemaine(moi.id)
+  const { categories, etiquettes, masquerEtiquette, depenses, setDepenses, cadeaux, setCadeaux, chargement, erreur } = useDepensesSemaine(moi.id)
   const [parametres] = useSearchParams()
 
   const [montant, setMontant] = useState(parametres.get('montant') ?? '')
@@ -97,23 +97,44 @@ export function EcranDepenses() {
     }
   }
 
-  /** Ticket lu et coché : une seule dépense (le total coché), avec la liste des articles retenus. */
+  /**
+   * Ticket lu et coché, puis une tuile touchée : une seule dépense (le total coché, avec les articles
+   * retenus), ou un cadeau au foyer (le magasin pour description, le total pour valeur estimée).
+   */
   async function enregistrerTicket(ticket: TicketValide) {
+    // Date du ticket si elle est dans la semaine en cours, sinon la date choisie à l'écran.
+    const instant = instantChoisi(ticket.jour ? quandDuJour(ticket.jour) : quand)
+    if (ticket.destination.type === 'cadeau') {
+      const cadeau = await ajouterCadeau({
+        description: ticket.magasin || 'courses du ticket',
+        estimated_cents: ticket.montant,
+        given_at: instant,
+      })
+      setCadeaux((liste) => [cadeau, ...liste])
+      setPhoto(null)
+      feter('cadeau', {
+        cle: CLE_CADEAU,
+        entree: { type: 'cadeau', valeur: cadeau },
+        gain: `🎁 ${formaterEuros(ticket.montant)}`,
+        message: encouragementAuHasard('cadeau', { moi: moi.display_name }),
+      })
+      return
+    }
+    const { categorie } = ticket.destination
     const depense = await ajouterDepense({
-      category_id: ticket.categorie.id,
+      category_id: categorie.id,
       amount_cents: ticket.montant,
       tag: ticket.magasin,
-      // Date du ticket si elle est dans la semaine en cours, sinon la date choisie à l'écran.
-      spent_at: instantChoisi(ticket.jour ? quandDuJour(ticket.jour) : quand),
+      spent_at: instant,
       items: ticket.articles,
     })
     setDepenses((liste) => [depense, ...liste])
     setPhoto(null)
     feter('depense', {
-      cle: CLE_TICKET,
+      cle: categorie.id,
       entree: { type: 'depense', valeur: depense },
       gain: `+${formaterEuros(ticket.montant)} 💖`,
-      message: encouragementAuHasard('depense', { moi: moi.display_name, categorie: ticket.categorie.name }),
+      message: encouragementAuHasard('depense', { moi: moi.display_name, categorie: categorie.name }),
     })
   }
 
@@ -169,27 +190,42 @@ export function EcranDepenses() {
 
   return (
     <div className="flex flex-col gap-5 pt-4">
-      <section className="rounded-3xl p-5 text-white shadow-lg" style={{ backgroundColor: moi.color }}>
-        <p className="text-sm opacity-90">mes 💖 cette semaine</p>
-        <p className="text-5xl font-extrabold">{formaterEuros(totalDepenses)}</p>
-        {cadeaux.length > 0 && (
-          <p className="mt-1 text-sm opacity-90">
-            + 🎁 {cadeaux.length} cadeau{cadeaux.length > 1 ? 'x' : ''} ({formaterEuros(totalCadeaux)} estimés)
-          </p>
-        )}
-      </section>
+      <BandeauSemaine
+        couleur={moi.color}
+        libelle="mes 💖 cette semaine"
+        valeur={formaterEuros(totalDepenses)}
+        detail={
+          cadeaux.length > 0 && `+ 🎁 ${cadeaux.length} cadeau${cadeaux.length > 1 ? 'x' : ''} (${formaterEuros(totalCadeaux)} estimés)`
+        }
+      />
 
-      <label className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm">
-        <input
-          aria-label="montant ou valeur estimée du cadeau"
-          inputMode="decimal"
-          placeholder="0,00"
-          className="min-w-0 flex-1 bg-transparent text-4xl font-extrabold outline-none"
-          value={montant}
-          onChange={(e) => setMontant(e.target.value)}
-        />
-        <span className="text-3xl font-bold text-encre/40">€</span>
-      </label>
+      {/* Deux façons de saisir : taper le montant, ou scanner le ticket (on choisit la tuile après la lecture). */}
+      <div className={`grid gap-3 ${TICKETS_ACTIFS ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <label className="flex h-24 flex-col justify-between rounded-2xl bg-white p-3 shadow-sm">
+          <span className="text-xs font-semibold text-encre/60">💶 montant</span>
+          <span className="flex items-baseline gap-1">
+            <input
+              aria-label="montant ou valeur estimée du cadeau"
+              inputMode="decimal"
+              placeholder="0,00"
+              className="w-full min-w-0 bg-transparent text-3xl font-extrabold outline-none"
+              value={montant}
+              onChange={(e) => setMontant(e.target.value)}
+            />
+            <span className="text-2xl font-bold text-encre/40">€</span>
+          </span>
+        </label>
+        {TICKETS_ACTIFS && (
+          <button
+            type="button"
+            onClick={() => champPhoto.current?.click()}
+            className="flex h-24 flex-col items-start justify-between rounded-2xl bg-white p-3 text-left shadow-sm transition active:scale-95 active:bg-rose/10"
+          >
+            <span className="text-xs font-semibold text-encre/60">🧾 ticket de caisse</span>
+            <span className="text-lg leading-tight font-bold">📷 scanner</span>
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-col gap-2">
         <input
@@ -200,15 +236,15 @@ export function EcranDepenses() {
           value={tag}
           onChange={(e) => setTag(e.target.value)}
         />
-        {etiquettes.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {etiquettes.map((e) => (
-              <button key={e} type="button" className={classePuce(tag === e)} onClick={() => setTag(tag === e ? '' : e)}>
-                {e}
-              </button>
-            ))}
-          </div>
-        )}
+        <PucesEtiquettes
+          etiquettes={etiquettes}
+          choisie={tag}
+          onChoisir={setTag}
+          onMasquer={(e) => {
+            masquerEtiquette(e)
+            if (tag === e) setTag('')
+          }}
+        />
       </div>
       <ChoixQuand quand={quand} setQuand={setQuand} />
       {erreurAjout && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreurAjout}</p>}
@@ -226,25 +262,13 @@ export function EcranDepenses() {
         }}
       />
 
-      {/* Une seule ligne qui défile : le cadeau rose en tête (hors total 💖), puis les catégories. */}
+      {/* Où va la dépense : le cadeau rose en tête (hors total 💖), puis les catégories. */}
       <div className="sans-barre -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4">
         <TuileRetournable dos={dosDe(CLE_CADEAU)} onTap={enregistrerCadeau} onFermer={fermerRetour} classeFace="tuile-rose">
           <span className="text-4xl">🎁</span>
           <span className="line-clamp-3 text-xs leading-tight font-semibold">offrir au foyer</span>
           <span className="text-[10px] leading-tight text-encre/60">hors dépenses</span>
         </TuileRetournable>
-        {TICKETS_ACTIFS && (
-          <TuileRetournable
-            dos={dosDe(CLE_TICKET)}
-            onTap={() => champPhoto.current?.click()}
-            onFermer={fermerRetour}
-            classeFace="bg-white shadow-sm active:bg-rose/10"
-          >
-            <span className="text-4xl">🧾</span>
-            <span className="line-clamp-3 text-xs leading-tight font-semibold">ticket de caisse</span>
-            <span className="text-xs">📷</span>
-          </TuileRetournable>
-        )}
         {categories
           .filter((c) => c.active)
           .map((c) => (

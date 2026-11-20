@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
-import { classePuce } from '../../components/Puce'
+import { TuileRetournable } from '../../components/TuileRetournable'
 import { jourLoggable } from '../../domain/calendrier'
 import type { ArticleTicket, Categorie } from '../../domain/types'
 import { formaterEuros } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
 import { lireTicket, type LectureTicket } from '../../services/ticket'
 
-const CATEGORIE_ALIMENTAIRE = /aliment|courses/i
+/** Tuile touchée après la lecture : une catégorie de dépense, ou le cadeau au foyer. */
+export type Destination = { type: 'categorie'; categorie: Categorie } | { type: 'cadeau' }
 
 export interface TicketValide {
-  categorie: Categorie
+  destination: Destination
   montant: number
   magasin: string
   /** Jour d'achat lu sur le ticket, s'il est dans la semaine en cours (AAAA-MM-JJ). */
@@ -19,7 +20,7 @@ export interface TicketValide {
 
 /**
  * Panneau du bas : lit la photo d'un ticket, puis on coche ce qui est pour le foyer.
- * Tout est coché au départ : on décoche le perso.
+ * Tout est coché au départ : on décoche le perso, puis on touche la tuile où ça va.
  */
 export function PanneauTicket({
   photo,
@@ -35,7 +36,6 @@ export function PanneauTicket({
   const [lecture, setLecture] = useState<LectureTicket | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [coches, setCoches] = useState<boolean[]>([])
-  const [categorieId, setCategorieId] = useState(() => (categories.find((c) => CATEGORIE_ALIMENTAIRE.test(c.name)) ?? categories[0])?.id)
   const [envoi, setEnvoi] = useState(false)
 
   useEffect(() => {
@@ -55,14 +55,14 @@ export function PanneauTicket({
   const retenus = useMemo(() => lecture?.articles.filter((_, i) => coches[i]) ?? [], [lecture, coches])
   const total = retenus.reduce((t, a) => t + a.montant_cents, 0)
   const toutCoche = coches.length > 0 && coches.every(Boolean)
-  const categorie = categories.find((c) => c.id === categorieId)
 
-  async function valider() {
-    if (!lecture || !categorie || total <= 0) return
+  async function valider(destination: Destination) {
+    if (!lecture || total <= 0 || envoi) return
     setEnvoi(true)
+    setErreur(null)
     try {
       await onValider({
-        categorie,
+        destination,
         montant: total,
         magasin: lecture.magasin.trim().slice(0, 40),
         jour: /^\d{4}-\d{2}-\d{2}$/.test(lecture.date) && jourLoggable(lecture.date) ? lecture.date : null,
@@ -123,22 +123,29 @@ export function PanneauTicket({
               <p className="text-right text-xs text-encre/50">total du ticket : {formaterEuros(lecture.total_cents)}</p>
             )}
 
-            <div className="flex flex-wrap gap-2">
+            <p className="text-sm font-semibold">
+              {total > 0 ? `Où vont ces ${formaterEuros(total)} ?` : 'Coche au moins un article.'}
+            </p>
+            <div className={`sans-barre -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto overflow-y-hidden px-5 py-4 ${total > 0 && !envoi ? '' : 'pointer-events-none opacity-40'}`}>
+              <TuileRetournable dos={null} onTap={() => valider({ type: 'cadeau' })} onFermer={() => {}} classeFace="tuile-rose">
+                <span className="text-4xl">🎁</span>
+                <span className="line-clamp-3 text-xs leading-tight font-semibold">offrir au foyer</span>
+                <span className="text-[10px] leading-tight text-encre/60">hors dépenses</span>
+              </TuileRetournable>
               {categories.map((c) => (
-                <button key={c.id} type="button" className={classePuce(c.id === categorieId)} onClick={() => setCategorieId(c.id)}>
-                  {c.emoji} {c.name}
-                </button>
+                <TuileRetournable
+                  key={c.id}
+                  dos={null}
+                  onTap={() => valider({ type: 'categorie', categorie: c })}
+                  onFermer={() => {}}
+                  classeFace="bg-white shadow-sm active:bg-rose/10"
+                >
+                  <span className="text-4xl">{c.emoji}</span>
+                  <span className="line-clamp-3 text-xs leading-tight font-semibold">{c.name}</span>
+                  <span className="text-xs">💖</span>
+                </TuileRetournable>
               ))}
             </div>
-
-            <button
-              type="button"
-              disabled={envoi || total <= 0 || !categorie}
-              onClick={valider}
-              className="rounded-2xl bg-rose py-3 text-lg font-bold text-white transition active:scale-95 disabled:opacity-40"
-            >
-              ajouter {formaterEuros(Math.max(total, 0))} 💖
-            </button>
           </>
         )}
       </section>

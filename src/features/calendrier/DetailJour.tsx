@@ -4,6 +4,7 @@ import { decomposer, jourLoggable, logsEnDouble, nuitModifiable, type CleJour } 
 import { etoilesDuLog, formaterEtoiles } from '../../domain/etoiles'
 import { semaineDe, parisVersInstant } from '../../domain/semaine'
 import type { Absence, Cadeau, Categorie, Depense, LogTache, Profil, Tache } from '../../domain/types'
+import { texteSur } from '../../lib/couleurs'
 import { formaterEuros } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
 import { marquerAbsence, retirerAbsence } from '../../services/presence'
@@ -111,8 +112,8 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
                   {enDouble && <span className="block text-xs font-normal text-encre/50">logué par vous deux, compté une fois</span>}
                 </span>
                 <span
-                  className={`rounded-full px-2 font-bold text-white ${enDouble ? 'line-through opacity-40' : ''}`}
-                  style={{ backgroundColor: personne?.color }}
+                  className={`rounded-full px-2 font-bold ${enDouble ? 'line-through opacity-40' : ''}`}
+                  style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}
                 >
                   ⭐ {formaterEtoiles(etoilesDuLog(log))}
                 </span>
@@ -129,7 +130,7 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
                   {categorie?.name}
                   {d.tag && <span className="font-normal text-encre/60"> · {d.tag}</span>}
                 </span>
-                <span className="rounded-full px-2 font-bold text-white" style={{ backgroundColor: personne?.color }}>
+                <span className="rounded-full px-2 font-bold" style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}>
                   💖 {formaterEuros(d.amount_cents)}
                 </span>
               </li>

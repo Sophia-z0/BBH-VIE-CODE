@@ -1,3 +1,4 @@
+import { BandeauSemaine } from '../../components/BandeauSemaine'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
@@ -89,14 +90,17 @@ export function EcranLog() {
 
   return (
     <div className="flex flex-col gap-5 pt-4">
-      <section className="rounded-3xl p-5 text-white shadow-lg" style={{ backgroundColor: moi.color }}>
-        <p className="text-sm opacity-90">mes étoiles cette semaine</p>
-        <p className="text-5xl font-extrabold">⭐ {formaterEtoiles(totalEtoiles(mesLogs))}</p>
-        <p className="mt-1 text-sm opacity-90">
-          {mesLogs.length === 0 ? 'Première tâche de la semaine ?' : `${mesLogs.length} tâche${mesLogs.length > 1 ? 's' : ''} loguée${mesLogs.length > 1 ? 's' : ''}`}
-          {serie >= 2 && ` · 🔥 ${serie} jours d’affilée`}
-        </p>
-      </section>
+      <BandeauSemaine
+        couleur={moi.color}
+        libelle="mes étoiles cette semaine"
+        valeur={`⭐ ${formaterEtoiles(totalEtoiles(mesLogs))}`}
+        detail={
+          <>
+            {mesLogs.length === 0 ? 'Première tâche de la semaine ?' : `${mesLogs.length} tâche${mesLogs.length > 1 ? 's' : ''} loguée${mesLogs.length > 1 ? 's' : ''}`}
+            {serie >= 2 && ` · 🔥 ${serie} jours d’affilée`}
+          </>
+        }
+      />
 
       <OptionsLog aDeux={aDeux} setADeux={setADeux} quand={quand} setQuand={setQuand} />
 

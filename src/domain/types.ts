@@ -18,8 +18,11 @@ export interface Profil {
   notif_sunday: boolean
 }
 
-/** Couleurs proposées pour distinguer les deux personnes dans le calendrier et les stats. */
+/** Couleurs vives proposées pour distinguer les deux personnes dans le calendrier et les stats. */
 export const COULEURS = ['#8b5cf6', '#22c55e', '#3b82f6', '#ec4899', '#eab308', '#14b8a6', '#ef4444', '#f97316']
+
+/** Couleurs douces : lavande, menthe, pêche, rose poudré, bleu ciel, citron, corail, sauge. */
+export const COULEURS_DOUCES = ['#c4b5fd', '#99e2c4', '#fdc08f', '#f6b3cf', '#9fd3f5', '#f7e07c', '#f9a291', '#b2c9a0']
 
 export interface Tache {
   id: string

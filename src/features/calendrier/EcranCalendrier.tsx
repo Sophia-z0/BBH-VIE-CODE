@@ -1,3 +1,4 @@
+import { texteSur } from '../../lib/couleurs'
 import { useMemo, useState } from 'react'
 import {
   aujourdhui,
@@ -118,7 +119,7 @@ export function EcranCalendrier() {
                         const aUnCadeau = vue === 'coeurs' && cadeauxDuJour.some((c) => c.user_id === p.id)
                         if (valeur === 0 && !aUnCadeau) return null
                         return (
-                          <span key={p.id} className="rounded-full px-1 font-bold text-white" style={{ backgroundColor: p.color }}>
+                          <span key={p.id} className="rounded-full px-1 font-bold" style={{ backgroundColor: p.color, color: texteSur(p.color) }}>
                             {valeur > 0 && (vue === 'etoiles' ? formaterEtoiles(valeur) : `${Math.round(valeur / 100)}€`)}
                             {aUnCadeau && '🎁'}
                           </span>
