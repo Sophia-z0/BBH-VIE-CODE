@@ -3,9 +3,12 @@
  * plus une micro-vibration sur écran tactile qui sait vibrer (Android ; l'iPhone ne vibre pas depuis le web).
  */
 
-/** Durées de vibration (ms) : le toucher de la pile, puis chaque carte qui retombe. */
-const VIBRATION_TOUCHER = 14
-const VIBRATION_CARTE = 8
+/**
+ * Durées de vibration (ms) : le toucher de la pile, puis chaque carte qui retombe.
+ * Sous ~20 ms, beaucoup de moteurs Android n'ont pas le temps de démarrer : on ne sent rien.
+ */
+const VIBRATION_TOUCHER = 45
+const VIBRATION_CARTE = 25
 
 // Chrome sur ordinateur expose vibrate() sans rien pour vibrer : on ne vibre que sur un écran tactile.
 const peutVibrer =

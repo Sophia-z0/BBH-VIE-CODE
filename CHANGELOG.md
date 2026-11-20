@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (pile : vibration nettement plus forte)
+
+- **Pile de cartes** : vibration poussée à 45 ms au toucher et 25 ms par carte (au lieu de 14 et 8), trop courtes pour la plupart des moteurs Android (`lib/cliquetis.ts`).
+
 ## 2026-11-20 (catégories de dépenses réorganisables)
 
 - **Catégories de dépenses** : boutons ▲▼ pour les réordonner, comme les tâches ; l'ordre est celui des tuiles de l'écran dépenses (dépenses › catégories, `EcranCategories.tsx`). Utilise le champ `sort_order` existant, sans migration.
