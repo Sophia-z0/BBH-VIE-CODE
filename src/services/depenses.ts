@@ -3,8 +3,7 @@ import { supabase } from '../lib/supabase'
 import type { ArticleTicket, Cadeau, Categorie, Depense, DepenseRecurrente } from '../domain/types'
 
 const COLONNES_CATEGORIE = 'id, name, emoji, is_recurring, active, sort_order'
-const COLONNES_DEPENSE = 'id, user_id, category_id, amount_cents, tag, note, spent_at, recurring_id'
-// Ajouter « , items » ici quand la migration 0010 aura tourné (lecture des tickets).
+const COLONNES_DEPENSE = 'id, user_id, category_id, amount_cents, tag, note, spent_at, recurring_id, items'
 const COLONNES_CADEAU = 'id, user_id, description, estimated_cents, given_at'
 const COLONNES_RECURRENTE = 'id, user_id, category_id, amount_cents, tag, frequency, day_of_month, month_of_year, active'
 

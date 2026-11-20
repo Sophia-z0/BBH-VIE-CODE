@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (ticket de caisse rallumé)
+
+- **Tuile « ticket de caisse » de retour** dans les dépenses (`TICKETS_ACTIFS = true`), et colonne `items` relue : migration 0010, clé Anthropic et fonction `lire-ticket` sont en place. Les articles retenus s'affichent sous « 🧾 n articles » dans la liste.
+
 ## 2026-11-19 (ticket de caisse en pause)
 
 - **Tuile « ticket de caisse » masquée** (`TICKETS_ACTIFS = false` dans `EcranDepenses.tsx`) et colonne `items` plus lue (`services/depenses.ts`) : l'app peut être publiée sans la migration 0010 ni la fonction `lire-ticket`. Pour rallumer : migration 0010, clé Anthropic, fonction déployée, puis remettre `items` dans `COLONNES_DEPENSE` et passer `TICKETS_ACTIFS` à `true`.

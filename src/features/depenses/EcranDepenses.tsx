@@ -29,8 +29,8 @@ interface RetourAffiche {
 
 const CLE_CADEAU = 'cadeau'
 const CLE_TICKET = 'ticket'
-/** Lecture des tickets en pause : à rallumer une fois la clé Anthropic, la migration 0010 et la fonction en place. */
-const TICKETS_ACTIFS = false
+/** Lecture des tickets (fonction « lire-ticket ») : passer à false pour la masquer. */
+const TICKETS_ACTIFS = true
 
 /**
  * Ajout rapide : montant, puis un tap sur la catégorie, et c'est enregistré.
