@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (badges dans les stats)
+
+- **Badges** : nouvelle carte « 🎖️ badges » dans les stats, sous « tâches » : les badges des deux côte à côte, calculés sur tout l'historique révélé ; un badge pas encore obtenu montre où on en est (« 142 / 200 »). Dans le podium, la liste « mes badges » est remplacée par « badges de la semaine » : ceux débloqués par l'un·e ou l'autre pendant la semaine révélée (`domain/scores.ts`, `EcranStats.tsx`, `EcranPodium.tsx`, `usePodium.ts`).
+
 ## 2026-11-20 (calendrier : lisibilité)
 
 - **Calendrier** : sous chaque semaine, mon total est aligné à gauche et celui de l'autre à droite. En vue 💖, une journée avec dépenses et cadeau affiche « 29€+🎁 » (et plus « 29€🎁 », qu'on pouvait lire comme 29 € de cadeau) (`EcranCalendrier.tsx`).

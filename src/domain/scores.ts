@@ -150,10 +150,15 @@ export interface Badge {
   emoji: string
   titre: string
   obtenu: boolean
+  /** Où on en est, pour les badges à palier (« 142 / 200 »). */
+  progres?: { actuel: number; cible: number }
 }
 
-/** Paliers bienveillants, calculés sur tout mon historique. */
-export function mesBadges(logs: LogTache[], depenses: Depense[], cadeaux: Cadeau[], groupesParTache: Map<string, string>): Badge[] {
+/**
+ * Paliers bienveillants d'une personne, calculés sur l'historique qu'on lui passe
+ * (ses logs, dépenses et cadeaux uniquement).
+ */
+export function badgesDe(logs: LogTache[], depenses: Depense[], cadeaux: Cadeau[], groupesParTache: Map<string, string>): Badge[] {
   const etoiles = logs.reduce((t, l) => t + (l.shared ? l.stars / 2 : l.stars), 0)
   const jours = [...new Set(logs.map((l) => jourParis(l.done_at)))].sort()
   const meilleureSerie = jours.reduce(
@@ -164,18 +169,40 @@ export function mesBadges(logs: LogTache[], depenses: Depense[], cadeaux: Cadeau
     },
     { precedent: '', courant: 0, meilleur: 0 },
   ).meilleur
-  const groupes = new Set(logs.map((l) => groupesParTache.get(l.task_id)).filter(Boolean))
+  const groupes = new Set(logs.map((l) => groupesParTache.get(l.task_id)).filter(Boolean)).size
 
+  const palier = (emoji: string, titre: string, actuel: number, cible: number): Badge => ({
+    emoji,
+    titre,
+    obtenu: actuel >= cible,
+    progres: { actuel: Math.min(actuel, cible), cible },
+  })
   return [
     { emoji: '🌱', titre: 'première tâche', obtenu: logs.length >= 1 },
-    { emoji: '⭐', titre: '50 étoiles', obtenu: etoiles >= 50 },
-    { emoji: '🌟', titre: '200 étoiles', obtenu: etoiles >= 200 },
-    { emoji: '💫', titre: '500 étoiles', obtenu: etoiles >= 500 },
-    { emoji: '🔥', titre: '7 jours d’affilée', obtenu: meilleureSerie >= 7 },
-    { emoji: '💎', titre: '30 jours d’affilée', obtenu: meilleureSerie >= 30 },
-    { emoji: '🎨', titre: 'touche-à-tout (5 groupes)', obtenu: groupes.size >= 5 },
+    palier('⭐', '50 étoiles', etoiles, 50),
+    palier('🌟', '200 étoiles', etoiles, 200),
+    palier('💫', '500 étoiles', etoiles, 500),
+    palier('🔥', '7 jours d’affilée', meilleureSerie, 7),
+    palier('💎', '30 jours d’affilée', meilleureSerie, 30),
+    palier('🎨', 'touche-à-tout (5 groupes)', groupes, 5),
     { emoji: '👫', titre: 'travail d’équipe', obtenu: logs.some((l) => l.shared) },
     { emoji: '💖', titre: 'première dépense', obtenu: depenses.length >= 1 },
     { emoji: '🎁', titre: 'premier cadeau', obtenu: cadeaux.length >= 1 },
   ]
+}
+
+/** Badges d'une personne sur l'historique du foyer (filtre ses entrées). */
+export function badgesDePersonne(
+  idPersonne: string,
+  logs: LogTache[],
+  depenses: Depense[],
+  cadeaux: Cadeau[],
+  groupesParTache: Map<string, string>,
+): Badge[] {
+  return badgesDe(
+    logs.filter((l) => l.user_id === idPersonne),
+    depenses.filter((d) => d.user_id === idPersonne),
+    cadeaux.filter((c) => c.user_id === idPersonne),
+    groupesParTache,
+  )
 }

@@ -2,20 +2,20 @@ import { useEffect, useState } from 'react'
 import { Bouton } from '../../components/Bouton'
 import { Celebration } from '../../components/Celebration'
 import { formaterEtoiles } from '../../domain/etoiles'
-import { SEUIL_COEUR, type Badge, type ResultatCoeurs, type ResultatEtoiles } from '../../domain/scores'
+import { SEUIL_COEUR, type ResultatCoeurs, type ResultatEtoiles } from '../../domain/scores'
 import type { Profil } from '../../domain/types'
 import { formaterEuros } from '../../lib/argent'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { marquerRevealOuvert, revealAOuvrir } from './reveal'
-import { usePodium } from './usePodium'
+import { usePodium, type Podium } from './usePodium'
 
 const pourcent = (x: number) => `${Math.round(x * 100)} %`
 const jjmm = (date: Date) => date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Paris' })
 
-/** Reveal du dimanche 18h, podium du mois, et mes badges. */
+/** Reveal du dimanche 18h, badges débloqués dans la semaine, et podium du mois. */
 export function EcranPodium() {
-  const { moi, membres } = useFoyerPret()
-  const { podium, erreur } = usePodium(membres, moi.id)
+  const { membres } = useFoyerPret()
+  const { podium, erreur } = usePodium(membres)
   const [ouvert, setOuvert] = useState(() => !revealAOuvrir())
   const [fete, setFete] = useState(0)
 
@@ -67,7 +67,7 @@ export function EcranPodium() {
         </section>
       )}
 
-      <MesBadges badges={podium.badges} />
+      <NouveauxBadges nouveaux={podium.nouveauxBadges} />
     </div>
   )
 }
@@ -193,21 +193,27 @@ function PodiumCoeurs({ resultat, periode }: { resultat: ResultatCoeurs; periode
   )
 }
 
-function MesBadges({ badges }: { badges: Badge[] }) {
+function NouveauxBadges({ nouveaux }: { nouveaux: Podium['nouveauxBadges'] }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-2xl font-bold">🎖️ mes badges</h2>
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-        {badges.map((b) => (
-          <div
-            key={b.titre}
-            className={`flex flex-col items-center gap-1 rounded-2xl bg-white p-3 text-center text-xs ${b.obtenu ? '' : 'opacity-30 grayscale'}`}
-          >
-            <span className="text-3xl">{b.emoji}</span>
-            {b.titre}
-          </div>
-        ))}
-      </div>
+      <h2 className="text-2xl font-bold">🎖️ badges de la semaine</h2>
+      {nouveaux.length === 0 ? (
+        <p className="text-sm text-encre/60">Pas de nouveau badge cette semaine. Tous les badges sont dans les stats.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {nouveaux.map(({ personne, badge }) => (
+            <li key={`${personne.id}-${badge.titre}`} className="flex items-center gap-3 rounded-2xl bg-white p-3 text-sm">
+              <span className="text-3xl">{badge.emoji}</span>
+              <span>
+                <span className="font-semibold" style={{ color: personne.color }}>
+                  {personne.display_name}
+                </span>{' '}
+                débloque <span className="font-semibold">{badge.titre}</span> !
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

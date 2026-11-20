@@ -3,7 +3,7 @@ import { BarreRepartition } from '../../components/BarreRepartition'
 import { classePuce } from '../../components/Puce'
 import { decomposer, jourParis } from '../../domain/calendrier'
 import { formaterEtoiles } from '../../domain/etoiles'
-import { derniereSemaineRevelee, moisDe, resultatCoeurs, resultatEtoiles } from '../../domain/scores'
+import { type Badge, badgesDePersonne, derniereSemaineRevelee, moisDe, resultatCoeurs, resultatEtoiles } from '../../domain/scores'
 import {
   achatsParEtiquette,
   dansPeriode,
@@ -162,6 +162,8 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
         />
       </Carte>
 
+      <Badges donnees={donnees} />
+
       <Carte titre="💖 dépenses">
         <BarreRepartition libelle="total" parPersonne={coeurs.scores.map((s) => ({ personne: s.personne, valeur: s.depense }))} formater={formaterEuros} />
         <SousTitre>par catégorie</SousTitre>
@@ -187,6 +189,52 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
         />
       </Carte>
     </div>
+  )
+}
+
+/** Badges des deux, côte à côte, sur tout l'historique révélé (pas seulement la période choisie). */
+function Badges({ donnees }: { donnees: DonneesStats }) {
+  const { membres } = useFoyerPret()
+  const groupesParTache = new Map(donnees.taches.map((t) => [t.id, t.group_name]))
+  const parPersonne = membres.map((personne) => ({
+    personne,
+    badges: badgesDePersonne(personne.id, donnees.logs, donnees.depenses, donnees.cadeaux, groupesParTache),
+  }))
+  const [premiere] = parPersonne
+  if (!premiere) return null
+  return (
+    <Carte titre="🎖️ badges">
+      <p className="text-xs text-encre/50">Sur tout l'historique, jusqu'au dernier reveal.</p>
+      <div className="grid items-center gap-x-2 gap-y-3 text-sm" style={{ gridTemplateColumns: `1fr repeat(${parPersonne.length}, 4.5rem)` }}>
+        <span />
+        {parPersonne.map(({ personne }) => (
+          <span key={personne.id} className="truncate text-center text-xs font-bold" style={{ color: personne.color }}>
+            {personne.display_name}
+          </span>
+        ))}
+        {premiere.badges.map((badge, i) => (
+          <BadgeLigne key={badge.titre} titre={badge.titre} cellules={parPersonne.map(({ personne, badges }) => ({ id: personne.id, badge: badges[i] }))} />
+        ))}
+      </div>
+    </Carte>
+  )
+}
+
+function BadgeLigne({ titre, cellules }: { titre: string; cellules: { id: string; badge: Badge }[] }) {
+  return (
+    <>
+      <span className="leading-tight">{titre}</span>
+      {cellules.map(({ id, badge }) => (
+        <span key={id} className="flex flex-col items-center leading-none">
+          <span className={`text-2xl ${badge.obtenu ? '' : 'opacity-30 grayscale'}`}>{badge.emoji}</span>
+          {!badge.obtenu && badge.progres && (
+            <span className="mt-1 text-[10px] text-encre/50">
+              {formaterEtoiles(badge.progres.actuel)} / {badge.progres.cible}
+            </span>
+          )}
+        </span>
+      ))}
+    </>
   )
 }
 
