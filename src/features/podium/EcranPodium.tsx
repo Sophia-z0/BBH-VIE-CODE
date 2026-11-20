@@ -8,6 +8,7 @@ import { formaterEuros } from '../../lib/argent'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { marquerRevealOuvert, revealAOuvrir } from './reveal'
 import { usePodium, type Podium } from './usePodium'
+import { PhraseReport } from '../../components/PhraseReport'
 
 const pourcent = (x: number) => `${Math.round(x * 100)} %`
 const jjmm = (date: Date) => date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Paris' })
@@ -64,6 +65,7 @@ export function EcranPodium() {
           <h2 className="text-2xl font-bold">🗓️ le podium de {nomMois}</h2>
           <PodiumEtoiles resultat={podium.etoilesMois} periode={`en ${nomMois}`} />
           <PodiumCoeurs resultat={podium.coeursMois} periode={`en ${nomMois}`} />
+          {podium.reportMois && <PhraseReport report={podium.reportMois} personnes={membres} />}
         </section>
       )}
 
@@ -169,12 +171,13 @@ function PodiumCoeurs({ resultat, periode }: { resultat: ResultatCoeurs; periode
             {/* Barre : part réelle, avec un repère sur la part juste. */}
             <div className="relative h-3 rounded-full bg-creme">
               <div className="h-3 rounded-full" style={{ width: pourcent(s.partReelle), backgroundColor: s.personne.color }} />
-              <div className="absolute -top-1 h-5 w-0.5 bg-encre" style={{ left: pourcent(s.partJuste) }} title="part juste" />
+              <div className="absolute -top-1 h-5 w-0.5 bg-encre" style={{ left: pourcent(Math.min(s.partJusteAjustee, 1)) }} title="part juste" />
             </div>
             <p className="text-xs text-encre/60">
-              Part juste : {pourcent(s.partJuste)}
-              {resultat.surRevenus ? ' (proportionnelle aux revenus)' : ' (50/50 tant que les deux revenus ne sont pas renseignés)'}
-              {s.coeur ? ' · part atteinte 💖' : ` · 💖 à partir de ${pourcent(s.partJuste * SEUIL_COEUR)}`}
+              Part juste : {pourcent(s.partJusteAjustee)}
+              {resultat.surRevenus ? ' (revenus moyens des 6 derniers mois' : ' (50/50 tant que les deux revenus ne sont pas renseignés'}
+              {s.ajustement !== 0 && `, ${s.ajustement > 0 ? '+' : '−'}${formaterEuros(Math.abs(s.ajustement))} de report`})
+              {s.coeur ? ' · part atteinte 💖' : ` · 💖 à partir de ${pourcent(s.partJusteAjustee * SEUIL_COEUR)}`}
             </p>
           </div>
         ))}

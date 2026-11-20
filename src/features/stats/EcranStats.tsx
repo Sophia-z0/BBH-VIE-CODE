@@ -17,6 +17,8 @@ import {
   type Periode,
 } from '../../domain/stats'
 import { formaterEuros } from '../../lib/argent'
+import { PhraseReport } from '../../components/PhraseReport'
+import { contexteRevenus, reportPour, trimestreDe } from '../../domain/revenus'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useDonneesStats, type DonneesStats } from './useDonneesStats'
 
@@ -61,8 +63,10 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
   const cadeaux = donnees.cadeaux.filter((c) => dansPeriode(c.given_at, p))
 
   const etoiles = resultatEtoiles(membres, logs, donnees.absences, p.nuits)
-  const coeurs = resultatCoeurs(membres, depenses, cadeaux)
-  const revenus = partDuRevenu(membres, depenses, p.nuits.length)
+  const contexte = contexteRevenus(membres, donnees.revenus, donnees.depenses, p.debut, p.fin)
+  const coeurs = resultatCoeurs(membres, depenses, cadeaux, contexte)
+  const revenus = partDuRevenu(membres, depenses, p.nuits.length, contexte.reference)
+  const report = donnees.revenus.length > 0 ? reportPour(membres, donnees.revenus, donnees.depenses, trimestreDe(new Date(p.fin.getTime() - 1))) : null
 
   function changerMois(delta: number) {
     const d = new Date(Date.UTC(moisChoisi.annee, moisChoisi.mois - 1 + delta, 1))
@@ -127,7 +131,7 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
                 ⭐ {pourcent(e.part)} des tâches ({formaterEtoiles(e.etoiles)} étoiles, {formaterEtoiles(e.parNuit)} par nuit)
               </p>
               <p>
-                💖 {pourcent(c.partReelle)} des dépenses ({formaterEuros(c.depense)}) · part juste {pourcent(c.partJuste)}
+                💖 {pourcent(c.partReelle)} des dépenses ({formaterEuros(c.depense)}) · part juste {pourcent(c.partJusteAjustee)}
               </p>
               {g.nombre > 0 && (
                 <p>
@@ -137,11 +141,12 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
               <p className="text-xs text-encre/50">
                 {Number.isNaN(r.valeur)
                   ? 'revenu non renseigné'
-                  : `revenu ${formaterEuros(personne.monthly_income_cents ?? 0)} / mois · dépenses du foyer ≈ ${pourcent(r.valeur)} du revenu`}
+                  : `revenu moyen (6 mois) ${formaterEuros(contexte.reference.get(personne.id) ?? 0)} / mois · dépenses du foyer ≈ ${pourcent(r.valeur)} du revenu`}
               </p>
             </div>
           )
         })}
+        {report && membres.length === 2 && <PhraseReport report={report} personnes={membres} />}
         {!coeurs.surRevenus && membres.length === 2 && (
           <p className="text-xs text-encre/50">Part juste à 50/50 tant que les deux revenus ne sont pas renseignés (réglages).</p>
         )}

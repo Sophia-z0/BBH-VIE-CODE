@@ -100,10 +100,10 @@ export function depensesParMois(personnes: Profil[], depenses: Depense[]): Ligne
 }
 
 /** Part des dépenses du foyer dans le revenu de chacun·e, sur la durée de la période. */
-export function partDuRevenu(personnes: Profil[], depenses: Depense[], nbNuits: number): ParPersonne {
+export function partDuRevenu(personnes: Profil[], depenses: Depense[], nbNuits: number, reference?: Map<string, number | null>): ParPersonne {
   const nbMois = Math.max(nbNuits / 30.44, 1 / 30.44)
   return personnes.map((personne) => {
-    const revenu = personne.monthly_income_cents ?? 0
+    const revenu = (reference ? reference.get(personne.id) : personne.monthly_income_cents) ?? 0
     return { personne, valeur: revenu > 0 ? montantDe(personne, depenses) / nbMois / revenu : NaN }
   })
 }

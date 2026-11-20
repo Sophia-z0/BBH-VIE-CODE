@@ -3,6 +3,13 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (revenus mois par mois, part juste lissée, report trimestriel)
+
+- **Revenus mensuels** : chacun·e saisit son revenu net de chaque mois. Une carte « 💶 ton revenu net de … ? » reste en haut des tâches et des dépenses tant que le mois dernier n'est pas renseigné. Les 12 derniers mois sont modifiables dans les réglages, section « mes revenus » (`features/reglages/Revenus.tsx`, `services/revenus.ts`).
+- **Part juste** : elle se calcule sur la moyenne des 6 derniers mois renseignés, ou à défaut sur le revenu mensuel habituel des réglages (`domain/revenus.ts`, `domain/scores.ts`).
+- **Report trimestriel** : à la fin d'un trimestre, l'écart entre la part juste calculée sur les revenus réels et celle sur les revenus lissés est ajouté (ou retiré) à la part juste du trimestre suivant, réparti dans le temps. Pas de solde à rembourser. Le report est plafonné à 25 % de la part juste ; le surplus passe au trimestre d'après. Une phrase l'explique sous le podium du mois et dans les stats (`components/PhraseReport.tsx`).
+- **À faire côté Supabase** : exécuter `supabase/migrations/0011_revenus_mensuels.sql` (nouvelle table `monthly_incomes`, rien de changé ailleurs). Sans elle, l'app continue comme avant.
+
 ## 2026-11-20 (pile fidget plus douce)
 
 - **Pile fidget** : empilage un peu plus lent (jusqu'à 110 ms entre deux cartes, chute de 380 ms) et micro-vibration très légère à chaque carte qui retombe, sur Android (Safari sur iPhone ne permet pas la vibration web) (`PileDeCartes.tsx`, `styles/index.css`).

@@ -14,6 +14,7 @@ import { messageErreur } from '../../lib/erreurs'
 import { CARTES_COLLECTEES } from '../../lib/options'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
+import { CarteRevenuManquant } from '../reglages/Revenus'
 import { PanneauTicket, type LotTicket } from './PanneauTicket'
 import { PucesEtiquettes } from './PucesEtiquettes'
 import { useDepensesSemaine } from './useDepensesSemaine'
@@ -234,6 +235,8 @@ export function EcranDepenses() {
           cadeaux.length > 0 && `+ 🎁 ${cadeaux.length} cadeau${cadeaux.length > 1 ? 'x' : ''} (${formaterEuros(totalCadeaux)} estimés)`
         }
       />
+
+      <CarteRevenuManquant idMoi={moi.id} />
 
       {/* Deux façons de saisir : taper le montant, ou scanner le ticket (on choisit la tuile après la lecture). */}
       <div className={`grid gap-3 ${TICKETS_ACTIFS ? 'grid-cols-2' : 'grid-cols-1'}`}>

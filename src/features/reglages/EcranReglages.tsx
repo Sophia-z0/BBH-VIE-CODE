@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Bouton } from '../../components/Bouton'
 import { ChampTexte } from '../../components/ChampTexte'
 import { ChoixCouleur } from '../../components/ChoixCouleur'
+import { HistoriqueRevenus } from './Revenus'
 import { messageErreur } from '../../lib/erreurs'
 import { seDeconnecter } from '../../services/auth'
 import { modifierMonProfil } from '../../services/foyer'
@@ -43,16 +44,18 @@ export function EcranReglages() {
         <ChampTexte libelle="prénom" required maxLength={40} value={prenom} onChange={(e) => setPrenom(e.target.value)} />
         <ChoixCouleur valeur={couleur} onChange={setCouleur} />
         <ChampTexte
-          libelle="revenu mensuel net (€, optionnel)"
+          libelle="revenu mensuel habituel (€, optionnel)"
           inputMode="decimal"
           pattern="[0-9]+([.,][0-9]{1,2})?"
-          placeholder="sert à calculer la part juste des dépenses"
+          placeholder="sert tant qu'aucun mois n'est saisi plus bas"
           value={revenu}
           onChange={(e) => setRevenu(e.target.value)}
         />
         {message && <p className="text-sm">{message}</p>}
         <Bouton type="submit">enregistrer</Bouton>
       </form>
+
+      <HistoriqueRevenus idMoi={moi.id} />
 
       <ReglagesNotifications moi={moi} />
 

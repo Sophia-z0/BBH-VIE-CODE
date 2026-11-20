@@ -78,6 +78,14 @@ export interface Depense {
 }
 
 /** Ligne d'un ticket de caisse ; montant négatif pour une remise. */
+/** Revenu net d'un mois (table monthly_incomes). */
+export interface RevenuMensuel {
+  user_id: string
+  /** Premier jour du mois, AAAA-MM-01. */
+  month: string
+  amount_cents: number
+}
+
 export interface ArticleTicket {
   libelle: string
   montant_cents: number

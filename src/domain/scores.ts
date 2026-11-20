@@ -49,7 +49,13 @@ export interface ScoreCoeurs {
   partReelle: number
   /** Part proportionnelle aux revenus (ou 50/50 si un revenu manque). */
   partJuste: number
-  /** partReelle / partJuste : 1 = pile sa part juste, au-dessus = plus que sa part. */
+  /** Report du trimestre précédent ajouté (ou retiré) à sa part juste sur la période, en centimes. */
+  ajustement: number
+  /** Montant juste : part juste du total, plus l'ajustement. */
+  montantJuste: number
+  /** Part juste une fois l'ajustement compris (montantJuste / total). */
+  partJusteAjustee: number
+  /** dépense / montantJuste : 1 = pile sa part juste, au-dessus = plus que sa part. */
   atteinte: number
   coeur: boolean
 }
@@ -63,17 +69,30 @@ export interface ResultatCoeurs {
   cadeaux: { personne: Profil; nombre: number; montant: number }[]
 }
 
-export function resultatCoeurs(personnes: Profil[], depenses: Depense[], cadeaux: Cadeau[]): ResultatCoeurs {
-  const surRevenus = personnes.length === 2 && personnes.every((p) => (p.monthly_income_cents ?? 0) > 0)
-  const totalRevenus = personnes.reduce((t, p) => t + (p.monthly_income_cents ?? 0), 0)
+/**
+ * Revenus de référence (revenu lissé) et ajustements (reports de trimestre) d'une période ;
+ * sans eux, on retombe sur le revenu mensuel des réglages.
+ */
+export interface OptionsCoeurs {
+  reference?: Map<string, number | null>
+  ajustements?: Map<string, number>
+}
+
+export function resultatCoeurs(personnes: Profil[], depenses: Depense[], cadeaux: Cadeau[], options: OptionsCoeurs = {}): ResultatCoeurs {
+  const revenuDe = (p: Profil) => (options.reference ? (options.reference.get(p.id) ?? 0) : (p.monthly_income_cents ?? 0))
+  const surRevenus = personnes.length === 2 && personnes.every((p) => revenuDe(p) > 0)
+  const totalRevenus = personnes.reduce((t, p) => t + revenuDe(p), 0)
   const total = depenses.reduce((t, d) => t + d.amount_cents, 0)
 
   const scores = personnes.map((personne) => {
     const depense = depenses.filter((d) => d.user_id === personne.id).reduce((t, d) => t + d.amount_cents, 0)
     const partReelle = total > 0 ? depense / total : 0
-    const partJuste = surRevenus ? (personne.monthly_income_cents ?? 0) / totalRevenus : 1 / personnes.length
-    const atteinte = partJuste > 0 ? partReelle / partJuste : 0
-    return { personne, depense, partReelle, partJuste, atteinte, coeur: total > 0 && atteinte >= SEUIL_COEUR }
+    const partJuste = surRevenus ? revenuDe(personne) / totalRevenus : 1 / personnes.length
+    const ajustement = total > 0 ? Math.round(options.ajustements?.get(personne.id) ?? 0) : 0
+    const montantJuste = Math.max(partJuste * total + ajustement, 0)
+    const atteinte = montantJuste > 0 ? depense / montantJuste : total > 0 ? Infinity : 0
+    const partJusteAjustee = total > 0 ? montantJuste / total : partJuste
+    return { personne, depense, partReelle, partJuste, ajustement, montantJuste, partJusteAjustee, atteinte, coeur: total > 0 && atteinte >= SEUIL_COEUR }
   })
 
   let gagnants: Profil[] = []

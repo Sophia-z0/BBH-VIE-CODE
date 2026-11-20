@@ -11,11 +11,13 @@ import {
   type ResultatCoeurs,
   type ResultatEtoiles,
 } from '../../domain/scores'
+import { contexteRevenus, reportPour, trimestreDe, type Report } from '../../domain/revenus'
 import type { Semaine } from '../../domain/semaine'
 import type { Profil } from '../../domain/types'
 import { messageErreur } from '../../lib/erreurs'
 import { cadeauxEntre, depensesEntre } from '../../services/depenses'
 import { listerAbsences } from '../../services/presence'
+import { listerRevenus } from '../../services/revenus'
 import { listerTaches, logsEntre } from '../../services/taches'
 
 export interface Podium {
@@ -25,6 +27,8 @@ export interface Podium {
   mois: Mois
   etoilesMois: ResultatEtoiles
   coeursMois: ResultatCoeurs
+  /** Report de trimestre qui s'applique au mois du podium (null sans aucun revenu mensuel saisi). */
+  reportMois: Report | null
   /** Badges débloqués pendant la semaine révélée, par l'une ou l'autre. */
   nouveauxBadges: { personne: Profil; badge: Badge }[]
 }
@@ -45,12 +49,14 @@ export function usePodium(personnes: Profil[]) {
       const fin = new Date(Math.max(semaine.fin.getTime(), mois.fin.getTime()))
       const premiereNuit = mois.nuits[0] < nuitsSemaine[0] ? mois.nuits[0] : nuitsSemaine[0]
 
-      const [logs, depenses, cadeaux, absences, taches] = await Promise.all([
+      const [logs, depenses, cadeaux, absences, taches, revenus] = await Promise.all([
         logsEntre(debut, fin),
         depensesEntre(debut, fin),
         cadeauxEntre(debut, fin),
         listerAbsences(premiereNuit, nuitsSemaine[6] > mois.nuits[mois.nuits.length - 1] ? nuitsSemaine[6] : mois.nuits[mois.nuits.length - 1]),
         listerTaches(),
+        // Table créée par la migration 0011 : sans elle, on fait comme s'il n'y avait aucun revenu mensuel.
+        listerRevenus().catch(() => []),
       ])
 
       const entre = (iso: string, a: Date, b: Date) => new Date(iso) >= a && new Date(iso) < b
@@ -65,6 +71,7 @@ export function usePodium(personnes: Profil[]) {
           personnes,
           depenses.filter((d) => dansSemaine(d.spent_at)),
           cadeaux.filter((c) => dansSemaine(c.given_at)),
+          contexteRevenus(personnes, revenus, depenses, semaine.debut, semaine.fin),
         ),
         mois,
         etoilesMois: resultatEtoiles(personnes, logs.filter((l) => dansMois(l.done_at)), absences, mois.nuits),
@@ -72,7 +79,9 @@ export function usePodium(personnes: Profil[]) {
           personnes,
           depenses.filter((d) => dansMois(d.spent_at)),
           cadeaux.filter((c) => dansMois(c.given_at)),
+          contexteRevenus(personnes, revenus, depenses, mois.debut, mois.fin),
         ),
+        reportMois: revenus.length > 0 ? reportPour(personnes, revenus, depenses, trimestreDe(mois.debut)) : null,
         nouveauxBadges: personnes.flatMap((personne) => {
           // Avant la semaine révélée, puis à sa fin : ce qui a changé vient d'être débloqué.
           const jusqua = (date: Date) => {
