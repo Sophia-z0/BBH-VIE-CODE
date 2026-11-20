@@ -87,7 +87,46 @@ body {
   pointer-events: none;
 }
 
+/* Pile fidget : la pile se soulève vers soi, puis les cartes retombent une à une (de grand à petit = vers l'écran). */
+@keyframes pile-souleve {
+  0% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(-6px) scale(1.3) rotate(-4deg);
+    filter: drop-shadow(0 10px 8px rgb(59 36 22 / 0.3));
+  }
+  100% {
+    transform: none;
+  }
+}
+.pile-souleve {
+  animation: pile-souleve 380ms ease-out;
+}
+@keyframes carte-tombe {
+  0% {
+    opacity: 0;
+    transform: translate(var(--x), calc(var(--y) - 26px)) rotate(calc(var(--r) * 3)) scale(1.6);
+    box-shadow: 0 14px 12px rgb(59 36 22 / 0.25);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(var(--x), calc(var(--y) + 1px)) rotate(var(--r)) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+  }
+}
+.carte-tombe {
+  animation: carte-tombe 280ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .pile-souleve,
+  .carte-tombe {
+    animation: none;
+  }
   .tuile-rayonnante {
     animation: none;
     box-shadow: 0 0 0.5rem 0.1rem rgb(251 146 60 / 0.3);
