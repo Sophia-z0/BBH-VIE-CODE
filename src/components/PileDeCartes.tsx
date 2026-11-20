@@ -14,7 +14,11 @@ const VISIBLES = 6
 /** Cartes qui retombent quand on remue la pile (les plus récentes). */
 const EN_CASCADE = 24
 /** Durée totale de la cascade, quel que soit le nombre de cartes. */
-const DUREE_CASCADE_MS = 1000
+const DUREE_CASCADE_MS = 1600
+/** Écart maximal entre deux cartes qui retombent. */
+const PAS_MAX_MS = 110
+/** Durée de chute d'une carte (garder en accord avec .carte-tombe dans index.css). */
+const CHUTE_MS = 380
 
 /**
  * Ordre de la pile : la dernière carte ajoutée au-dessus, quelle que soit la date du log
@@ -49,17 +53,27 @@ export function PileDeCartes({
   // Chaque toucher relance la cascade (nouvelle clé = animations rejouées).
   const [cascade, setCascade] = useState(0)
   const visibles = cartes.slice(0, cascade > 0 ? EN_CASCADE : VISIBLES).reverse()
-  const pas = Math.min(60, DUREE_CASCADE_MS / Math.max(visibles.length, 1))
+  const pas = Math.min(PAS_MAX_MS, DUREE_CASCADE_MS / Math.max(visibles.length, 1))
 
   // Cascade finie : retour à la pile au repos (sinon une carte collectée ensuite retomberait aussi).
-  const minuteur = useRef<ReturnType<typeof setTimeout>>(undefined)
-  useEffect(() => () => clearTimeout(minuteur.current), [])
+  const minuteurs = useRef<ReturnType<typeof setTimeout>[]>([])
+  const vider = () => {
+    minuteurs.current.forEach(clearTimeout)
+    minuteurs.current = []
+  }
+  useEffect(() => vider, [])
 
   function remuer() {
+    vider()
     setCascade((n) => n + 1)
-    navigator.vibrate?.(10)
-    clearTimeout(minuteur.current)
-    minuteur.current = setTimeout(() => setCascade(0), 120 + DUREE_CASCADE_MS + 400)
+    // Micro-vibration à chaque carte qui touche la pile (Android ; iPhone n'en a pas pour le web).
+    const n = Math.min(cartes.length, EN_CASCADE)
+    const pasCascade = Math.min(PAS_MAX_MS, DUREE_CASCADE_MS / Math.max(n, 1))
+    navigator.vibrate?.(6)
+    for (let i = 0; i < n; i++) {
+      minuteurs.current.push(setTimeout(() => navigator.vibrate?.(3), 120 + i * pasCascade + CHUTE_MS * 0.7))
+    }
+    minuteurs.current.push(setTimeout(() => setCascade(0), 120 + n * pasCascade + CHUTE_MS + 300))
   }
 
   const pile = (

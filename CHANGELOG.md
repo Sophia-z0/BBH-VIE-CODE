@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (pile fidget plus douce)
+
+- **Pile fidget** : empilage un peu plus lent (jusqu'à 110 ms entre deux cartes, chute de 380 ms) et micro-vibration très légère à chaque carte qui retombe, sur Android (Safari sur iPhone ne permet pas la vibration web) (`PileDeCartes.tsx`, `styles/index.css`).
+
 ## 2026-11-20 (pile fidget)
 
 - **Pile de cartes à remuer** : toucher la pile la soulève vers soi, puis les cartes de la semaine (jusqu'à 24) retombent une à une, en petit, de la plus ancienne à la plus récente, chacune de travers. Chaque nouveau toucher relance la cascade. Dans tâches et dans dépenses. Retour arrière : `PILE_FIDGET = false` dans `src/lib/options.ts` (`PileDeCartes.tsx`, `styles/index.css`).
