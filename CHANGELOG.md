@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (tickets mélangés : une dépense par catégorie)
+
+- **Ticket de caisse** : la lecture propose une catégorie du foyer pour chaque article. Le panneau les regroupe par catégorie avec un sous-total ; toucher l'emoji d'un article ouvre la ligne de tuiles pour le changer de catégorie ou l'offrir au foyer (🎁). Le bouton crée une dépense par catégorie (même magasin et même date, chacune avec ses articles) et un cadeau pour le groupe 🎁. Si un enregistrement échoue, les lots déjà enregistrés quittent la liste : réessayer ne crée pas de doublon (`PanneauTicket.tsx`, `EcranDepenses.tsx`, `services/ticket.ts`).
+- **À faire côté Supabase** : redéployer la fonction `lire-ticket` (`supabase/functions/lire-ticket/index.ts`), qui reçoit maintenant les noms des catégories. Pas de migration.
+
 ## 2026-11-20 (cartes collectées)
 
 - **Les tuiles deviennent des cartes qu'on collectionne** : après le message au dos, la carte se remet à l'endroit et vole jusqu'à la pile du bandeau, façon solitaire, où elle se pose de travers par-dessus les autres. La pile montre les 6 dernières cartes de la semaine (tâches et dépenses ; occasionnelles orangées, cadeaux roses). « annuler » reste proposé sous la pile quelques secondes. Le total passe sous le libellé du bandeau (`components/PileDeCartes.tsx`, `components/useCollecte.ts`, `lib/envol.ts`, `EcranLog.tsx`, `EcranDepenses.tsx`).

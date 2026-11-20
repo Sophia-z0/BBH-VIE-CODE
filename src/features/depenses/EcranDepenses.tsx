@@ -14,7 +14,7 @@ import { messageErreur } from '../../lib/erreurs'
 import { CARTES_COLLECTEES } from '../../lib/options'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
-import { PanneauTicket, type TicketValide } from './PanneauTicket'
+import { PanneauTicket, type LotTicket } from './PanneauTicket'
 import { PucesEtiquettes } from './PucesEtiquettes'
 import { useDepensesSemaine } from './useDepensesSemaine'
 
@@ -56,6 +56,8 @@ export function EcranDepenses() {
   const minuteurRetour = useRef<ReturnType<typeof setTimeout>>(undefined)
   const champPhoto = useRef<HTMLInputElement>(null)
   const [photo, setPhoto] = useState<File | null>(null)
+  /** Entrées créées depuis le ticket en cours : la plus grosse retourne sa tuile à la fin. */
+  const lotsDuTicket = useRef<{ retour: RetourAffiche; occasion: Occasion; montant: number }[]>([])
 
   useEffect(() => () => clearTimeout(minuteurRetour.current), [])
   const collecte = useCollecte(() => setRetour(null))
@@ -104,44 +106,54 @@ export function EcranDepenses() {
   }
 
   /**
-   * Ticket lu et coché, puis une tuile touchée : une seule dépense (le total coché, avec les articles
-   * retenus), ou un cadeau au foyer (le magasin pour description, le total pour valeur estimée).
+   * Un lot du ticket (articles cochés d'une même destination) : une dépense avec ses articles,
+   * ou un cadeau au foyer (le magasin pour description, le total pour valeur estimée).
    */
-  async function enregistrerTicket(ticket: TicketValide) {
+  async function enregistrerLot(lot: LotTicket) {
     // Date du ticket si elle est dans la semaine en cours, sinon la date choisie à l'écran.
-    const instant = instantChoisi(ticket.jour ? quandDuJour(ticket.jour) : quand)
-    if (ticket.destination.type === 'cadeau') {
-      const cadeau = await ajouterCadeau({
-        description: ticket.magasin || 'courses du ticket',
-        estimated_cents: ticket.montant,
-        given_at: instant,
-      })
+    const instant = instantChoisi(lot.jour ? quandDuJour(lot.jour) : quand)
+    if (lot.destination.type === 'cadeau') {
+      const cadeau = await ajouterCadeau({ description: lot.magasin || 'courses du ticket', estimated_cents: lot.montant, given_at: instant })
       setCadeaux((liste) => [cadeau, ...liste])
-      setPhoto(null)
-      feter('cadeau', {
-        cle: CLE_CADEAU,
-        entree: { type: 'cadeau', valeur: cadeau },
-        gain: `🎁 ${formaterEuros(ticket.montant)}`,
-        message: encouragementAuHasard('cadeau', { moi: moi.display_name }),
+      lotsDuTicket.current.push({
+        occasion: 'cadeau',
+        montant: lot.montant,
+        retour: {
+          cle: CLE_CADEAU,
+          entree: { type: 'cadeau', valeur: cadeau },
+          gain: `🎁 ${formaterEuros(lot.montant)}`,
+          message: encouragementAuHasard('cadeau', { moi: moi.display_name }),
+        },
       })
       return
     }
-    const { categorie } = ticket.destination
+    const { categorie } = lot.destination
     const depense = await ajouterDepense({
       category_id: categorie.id,
-      amount_cents: ticket.montant,
-      tag: ticket.magasin,
+      amount_cents: lot.montant,
+      tag: lot.magasin,
       spent_at: instant,
-      items: ticket.articles,
+      items: lot.articles,
     })
     setDepenses((liste) => [depense, ...liste])
-    setPhoto(null)
-    feter('depense', {
-      cle: categorie.id,
-      entree: { type: 'depense', valeur: depense },
-      gain: `+${formaterEuros(ticket.montant)} 💖`,
-      message: encouragementAuHasard('depense', { moi: moi.display_name, categorie: categorie.name }),
+    lotsDuTicket.current.push({
+      occasion: 'depense',
+      montant: lot.montant,
+      retour: {
+        cle: categorie.id,
+        entree: { type: 'depense', valeur: depense },
+        gain: `+${formaterEuros(lot.montant)} 💖`,
+        message: encouragementAuHasard('depense', { moi: moi.display_name, categorie: categorie.name }),
+      },
     })
+  }
+
+  /** Ticket fini : le panneau se ferme et la tuile du plus gros lot se retourne (puis va sur la pile). */
+  function terminerTicket() {
+    setPhoto(null)
+    const [plusGros] = [...lotsDuTicket.current].sort((a, b) => b.montant - a.montant)
+    lotsDuTicket.current = []
+    if (plusGros) feter(plusGros.occasion, plusGros.retour)
   }
 
   async function enregistrerCadeau() {
@@ -281,7 +293,10 @@ export function EcranDepenses() {
         onChange={(e) => {
           const fichier = e.target.files?.[0]
           e.target.value = ''
-          if (fichier) setPhoto(fichier)
+          if (fichier) {
+            lotsDuTicket.current = []
+            setPhoto(fichier)
+          }
         }}
       />
 
@@ -374,8 +389,9 @@ export function EcranDepenses() {
         <PanneauTicket
           photo={photo}
           categories={categories.filter((c) => c.active)}
-          onValider={enregistrerTicket}
-          onFermer={() => setPhoto(null)}
+          onEnregistrer={enregistrerLot}
+          onTermine={terminerTicket}
+          onFermer={() => (lotsDuTicket.current.length > 0 ? terminerTicket() : setPhoto(null))}
         />
       )}
 

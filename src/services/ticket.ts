@@ -7,7 +7,8 @@ export interface LectureTicket {
   magasin: string
   /** AAAA-MM-JJ, ou chaîne vide. */
   date: string
-  articles: ArticleTicket[]
+  /** `categorie` : nom de la catégorie du foyer proposée pour l'article. */
+  articles: (ArticleTicket & { categorie?: string })[]
   total_cents: number
 }
 
@@ -27,9 +28,9 @@ async function photoEnBase64(fichier: File): Promise<string> {
 }
 
 /** Envoie la photo à la fonction Supabase, qui la lit avec Claude ; la photo n'est gardée nulle part. */
-export async function lireTicket(fichier: File): Promise<LectureTicket> {
+export async function lireTicket(fichier: File, categories: string[]): Promise<LectureTicket> {
   const image = await photoEnBase64(fichier)
-  const { data, error } = await supabase.functions.invoke<LectureTicket>('lire-ticket', { body: { image } })
+  const { data, error } = await supabase.functions.invoke<LectureTicket>('lire-ticket', { body: { image, categories } })
   if (error) {
     const detail = error instanceof FunctionsHttpError ? await error.context.json().catch(() => null) : null
     throw new Error(detail?.erreur ?? 'Le ticket n’a pas pu être lu, réessaie avec une photo plus nette.')
