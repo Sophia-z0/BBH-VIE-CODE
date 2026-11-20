@@ -3,6 +3,13 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (badges de la semaine, objectifs, revenus par année)
+
+- **Badges de la semaine** (`domain/badges.ts`) : 11 badges gagnés au reveal, une fois par semaine au plus : 🌟 maniacobehbz, 👩‍🍳 grand·e chef·fe cuisto, 🍝 p’tit·e qui nourrit, 🎁 bbh kadum, 💝 la générosité incarnée, 🌀 Aspiratorix de behbz !, 🦸 mère / père courage, 🦉 noctambehbz, 🐓 lève-tôt, 🤝 duo de choc, 🧹 zéro poussière. Surprise : un badge jamais gagné n'apparaît nulle part. Podium : badges de la semaine révélée. Stats : palmarès en grille, nombre de fois par personne et 👑. Les anciens badges (première tâche, etc.) disparaissent.
+- **Objectifs** (stats) : 🎨 touche-à-tout, 🔥 7 et 💎 30 jours d’affilée, 🌟 200 étoiles, grisés avec décompte ; pour soi, la semaine en cours compte déjà.
+- **Genre** (réglages › mon profil) : elle / il / iel pour accorder les badges. Migration `0012_genre_profil.sql` (colonne optionnelle `profiles.gender`) ; sans elle, forme inclusive.
+- **Revenus** (réglages) : menu déroulant par année depuis 2025, mois ouverts jusqu'au mois en cours, moyenne de l'année, bravo quand elle grimpe.
+
 ## 2026-11-20 (pile : vibration un peu plus douce)
 
 - **Pile de cartes** : vibration adoucie, 12 ms au toucher et 8 ms par carte (`lib/cliquetis.ts`).

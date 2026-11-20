@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { moisDeDate, moisDecale, nomDuMois, type CleMois } from '../../domain/revenus'
+import { cleMois, moisDeDate, moisDecale, nomDuMois, type CleMois } from '../../domain/revenus'
 import type { RevenuMensuel } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
@@ -68,15 +68,33 @@ export function CarteRevenuManquant({ idMoi }: { idMoi: string }) {
   )
 }
 
-/** Réglages : mes revenus des 12 derniers mois, modifiables (enregistrés en quittant le champ). */
+/** Première année proposée dans les réglages (sert au lissage des premiers mois de l'app). */
+const PREMIERE_ANNEE = 2025
+
+/** Moyenne mensuelle des mois renseignés d'une année, ou null si aucun. */
+function moyenneAnnuelle(revenus: RevenuMensuel[], annee: number): number | null {
+  const siens = revenus.filter((r) => r.month.startsWith(`${annee}-`))
+  return siens.length === 0 ? null : Math.round(siens.reduce((t, r) => t + r.amount_cents, 0) / siens.length)
+}
+
+/**
+ * Réglages : mes revenus, année par année (rien n'est jamais effacé ; un nouveau mois s'ouvre au fil du temps),
+ * avec la moyenne de l'année et un bravo quand elle grimpe.
+ */
 export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
   const [revenus, setRevenus] = useMesRevenus(idMoi)
+  const actuel = moisDeDate(new Date())
+  const anneeActuelle = Number(actuel.slice(0, 4))
+  const [annee, setAnnee] = useState(anneeActuelle)
   const [message, setMessage] = useState<string | null>(null)
   if (!revenus) return null
 
-  const actuel = moisDeDate(new Date())
-  const liste = Array.from({ length: 12 }, (_, i) => moisDecale(actuel, -i))
+  const annees = Array.from({ length: anneeActuelle - PREMIERE_ANNEE + 1 }, (_, i) => anneeActuelle - i)
+  // Mois de l'année choisie jusqu'au mois en cours, le plus récent en haut.
+  const liste = Array.from({ length: 12 }, (_, i) => cleMois(annee, 12 - i)).filter((m) => m <= actuel)
   const montantDe = (mois: CleMois) => revenus.find((r) => r.month.startsWith(mois))?.amount_cents
+  const moyenne = moyenneAnnuelle(revenus, annee)
+  const moyennePrecedente = moyenneAnnuelle(revenus, annee - 1)
 
   async function enregistrer(mois: CleMois, texte: string) {
     if (texte.trim() === '') return
@@ -85,8 +103,16 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
     if (centimes === montantDe(mois)) return
     try {
       const revenu = await enregistrerRevenu(idMoi, mois, centimes)
-      setRevenus([...(revenus ?? []).filter((r) => !r.month.startsWith(mois)), revenu])
-      setMessage(`${nomDuMois(mois)} : ${formaterEuros(centimes)} enregistré.`)
+      const nouveaux = [...(revenus ?? []).filter((r) => !r.month.startsWith(mois)), revenu]
+      setRevenus(nouveaux)
+      const anneeMois = Number(mois.slice(0, 4))
+      const avant = moyenneAnnuelle(revenus ?? [], anneeMois)
+      const apres = moyenneAnnuelle(nouveaux, anneeMois) ?? 0
+      setMessage(
+        avant !== null && apres > avant
+          ? `🎉 Bravo, ta moyenne ${anneeMois} grimpe à ${formaterEuros(apres)} par mois ! Continue comme ça 💪`
+          : `${nomDuMois(mois)} : ${formaterEuros(centimes)} enregistré.`,
+      )
     } catch (e) {
       setMessage(messageErreur(e))
     }
@@ -94,11 +120,37 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-xl font-bold">mes revenus</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold">mes revenus</h2>
+        <select
+          aria-label="année"
+          className="rounded-xl bg-white px-3 py-1 font-semibold shadow-sm"
+          value={annee}
+          onChange={(e) => {
+            setAnnee(Number(e.target.value))
+            setMessage(null)
+          }}
+        >
+          {annees.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
+      </div>
       <p className="text-xs text-encre/60">
         Revenu net de chaque mois. La part juste des dépenses suit la moyenne de tes 6 derniers mois ; chaque trimestre, l'écart avec
         tes revenus réels est reporté sur le trimestre suivant.
       </p>
+      <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
+        <span className="text-sm">moyenne {annee}</span>
+        <span className="text-right">
+          <span className="text-lg font-bold">{moyenne === null ? '—' : `${formaterEuros(moyenne)} / mois`}</span>
+          {moyenne !== null && moyennePrecedente !== null && moyenne > moyennePrecedente && (
+            <span className="block text-xs text-encre/60">🚀 plus que ta moyenne {annee - 1} ({formaterEuros(moyennePrecedente)})</span>
+          )}
+        </span>
+      </div>
       <ul className="flex flex-col divide-y divide-orange/10 rounded-2xl bg-white">
         {liste.map((mois) => (
           <li key={mois} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
@@ -115,7 +167,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
           </li>
         ))}
       </ul>
-      {message && <p className="text-xs text-encre/60">{message}</p>}
+      {message && <p className="text-sm font-semibold text-encre/70">{message}</p>}
     </section>
   )
 }

@@ -3,14 +3,13 @@ import { nuitsDeSemaine } from '../../domain/calendrier'
 import {
   derniereSemaineRevelee,
   dernierMoisRevele,
-  badgesDePersonne,
   resultatCoeurs,
   resultatEtoiles,
-  type Badge,
   type Mois,
   type ResultatCoeurs,
   type ResultatEtoiles,
 } from '../../domain/scores'
+import { badgesDeLaSemaine, type DefBadge } from '../../domain/badges'
 import { contexteRevenus, reportPour, trimestreDe, type Report } from '../../domain/revenus'
 import type { Semaine } from '../../domain/semaine'
 import type { Profil } from '../../domain/types'
@@ -29,8 +28,8 @@ export interface Podium {
   coeursMois: ResultatCoeurs
   /** Report de trimestre qui s'applique au mois du podium (null sans aucun revenu mensuel saisi). */
   reportMois: Report | null
-  /** Badges débloqués pendant la semaine révélée, par l'une ou l'autre. */
-  nouveauxBadges: { personne: Profil; badge: Badge }[]
+  /** Badges gagnés pendant la semaine révélée, par l'une ou l'autre. */
+  nouveauxBadges: { personne: Profil; badge: DefBadge }[]
 }
 
 /** Résultats de la dernière semaine et du dernier mois révélés, plus les badges débloqués cette semaine-là. */
@@ -63,7 +62,6 @@ export function usePodium(personnes: Profil[]) {
       const dansSemaine = (iso: string) => entre(iso, semaine.debut, semaine.fin)
       const dansMois = (iso: string) => entre(iso, mois.debut, mois.fin)
 
-      const groupesParTache = new Map(taches.map((t) => [t.id, t.group_name]))
       const resultat: Podium = {
         semaine,
         etoilesSemaine: resultatEtoiles(personnes, logs.filter((l) => dansSemaine(l.done_at)), absences, nuitsSemaine),
@@ -82,22 +80,9 @@ export function usePodium(personnes: Profil[]) {
           contexteRevenus(personnes, revenus, depenses, mois.debut, mois.fin),
         ),
         reportMois: revenus.length > 0 ? reportPour(personnes, revenus, depenses, trimestreDe(mois.debut)) : null,
-        nouveauxBadges: personnes.flatMap((personne) => {
-          // Avant la semaine révélée, puis à sa fin : ce qui a changé vient d'être débloqué.
-          const jusqua = (date: Date) => {
-            const avant = (iso: string) => new Date(iso) < date
-            return badgesDePersonne(
-              personne.id,
-              logs.filter((l) => avant(l.done_at)),
-              depenses.filter((d) => avant(d.spent_at)),
-              cadeaux.filter((c) => avant(c.given_at)),
-              groupesParTache,
-            )
-          }
-          const avant = jusqua(semaine.debut)
-          return jusqua(semaine.fin)
-            .filter((b, i) => b.obtenu && !avant[i].obtenu)
-            .map((badge) => ({ personne, badge }))
+        nouveauxBadges: [...badgesDeLaSemaine(personnes, semaine, logs, cadeaux, taches)].flatMap(([id, badges]) => {
+          const personne = personnes.find((p) => p.id === id)!
+          return badges.map((badge) => ({ personne, badge }))
         }),
       }
       if (!annule) setPodium(resultat)

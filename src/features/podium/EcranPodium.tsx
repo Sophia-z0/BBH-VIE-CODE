@@ -201,17 +201,20 @@ function NouveauxBadges({ nouveaux }: { nouveaux: Podium['nouveauxBadges'] }) {
     <section className="flex flex-col gap-3">
       <h2 className="text-2xl font-bold">🎖️ badges de la semaine</h2>
       {nouveaux.length === 0 ? (
-        <p className="text-sm text-encre/60">Pas de nouveau badge cette semaine. Tous les badges sont dans les stats.</p>
+        <p className="text-sm text-encre/60">Pas de badge cette semaine… des surprises vous attendent, à vous de les trouver !</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {nouveaux.map(({ personne, badge }) => (
-            <li key={`${personne.id}-${badge.titre}`} className="flex items-center gap-3 rounded-2xl bg-white p-3 text-sm">
-              <span className="text-3xl">{badge.emoji}</span>
-              <span>
-                <span className="font-semibold" style={{ color: personne.color }}>
-                  {personne.display_name}
-                </span>{' '}
-                débloque <span className="font-semibold">{badge.titre}</span> !
+            <li key={`${personne.id}-${badge.cle}`} className="flex items-center gap-3 rounded-2xl bg-white p-3 text-sm">
+              <span className="text-3xl">{badge.emoji(personne.gender)}</span>
+              <span className="flex flex-col">
+                <span>
+                  <span className="font-semibold" style={{ color: personne.color }}>
+                    {personne.display_name}
+                  </span>{' '}
+                  gagne <span className="font-semibold">{badge.titre(personne.gender)}</span> !
+                </span>
+                <span className="text-xs text-encre/50">{badge.regle}</span>
               </span>
             </li>
           ))}

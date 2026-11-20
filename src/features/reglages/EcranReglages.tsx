@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Bouton } from '../../components/Bouton'
+import { classePuce } from '../../components/Puce'
+import type { Genre } from '../../domain/types'
 import { ChampTexte } from '../../components/ChampTexte'
 import { ChoixCouleur } from '../../components/ChoixCouleur'
 import { HistoriqueRevenus } from './Revenus'
@@ -20,6 +22,7 @@ export function EcranReglages() {
   const [prenom, setPrenom] = useState(moi.display_name)
   const [couleur, setCouleur] = useState(moi.color)
   const [revenu, setRevenu] = useState(moi.monthly_income_cents === null ? '' : String(moi.monthly_income_cents / 100))
+  const [genre, setGenre] = useState<Genre | null>(moi.gender ?? null)
   const [message, setMessage] = useState<string | null>(null)
 
   async function enregistrer(evenement: FormEvent) {
@@ -29,6 +32,8 @@ export function EcranReglages() {
         display_name: prenom.trim(),
         color: couleur,
         monthly_income_cents: revenu.trim() === '' ? null : Math.round(Number(revenu.replace(',', '.')) * 100),
+        // Envoyé seulement s'il change : sans la migration 0012, la colonne n'existe pas.
+        ...(genre !== (moi.gender ?? null) ? { gender: genre } : {}),
       })
       await recharger()
       setMessage('Enregistré ✅')
@@ -43,6 +48,22 @@ export function EcranReglages() {
         <h1 className="text-2xl font-bold">mon profil</h1>
         <ChampTexte libelle="prénom" required maxLength={40} value={prenom} onChange={(e) => setPrenom(e.target.value)} />
         <ChoixCouleur valeur={couleur} onChange={setCouleur} />
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">pour accorder mes badges</span>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['elle', 'elle · cheffe'],
+                ['il', 'il · chef'],
+                ['iel', 'iel · chef·fe'],
+              ] as const
+            ).map(([valeur, libelle]) => (
+              <button key={valeur} type="button" className={classePuce(genre === valeur)} onClick={() => setGenre(valeur)}>
+                {libelle}
+              </button>
+            ))}
+          </div>
+        </div>
         <ChampTexte
           libelle="revenu mensuel habituel (€, optionnel)"
           inputMode="decimal"

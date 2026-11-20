@@ -18,6 +18,8 @@ export interface DonneesStats {
   taches: Tache[]
   categories: Categorie[]
   revenus: RevenuMensuel[]
+  /** Logs de la semaine en cours (pas encore révélée) : seulement les miens comptent, pour mes objectifs. */
+  logsEnCours: LogTache[]
 }
 
 /** Tout l'historique révélé du foyer, chargé une fois pour l'écran de stats. */
@@ -39,9 +41,10 @@ export function useDonneesStats() {
       listerCategories(),
       // Table créée par la migration 0011 : sans elle, aucun revenu mensuel.
       listerRevenus().catch(() => []),
+      logsEntre(dernierReveal, new Date()),
     ])
-      .then(([logs, depenses, cadeaux, absences, taches, categories, revenus]) => {
-        if (!annule) setDonnees({ dernierReveal, logs, depenses, cadeaux, absences, taches, categories, revenus })
+      .then(([logs, depenses, cadeaux, absences, taches, categories, revenus, logsEnCours]) => {
+        if (!annule) setDonnees({ dernierReveal, logs, depenses, cadeaux, absences, taches, categories, revenus, logsEnCours })
       })
       .catch((e) => !annule && setErreur(messageErreur(e)))
     return () => {

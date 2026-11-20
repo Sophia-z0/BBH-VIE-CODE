@@ -16,7 +16,12 @@ export interface Profil {
   /** « HH:MM:SS », heure de Paris, par quart d'heure. */
   notif_daily_time: string
   notif_sunday: boolean
+  /** Pour accorder les badges ; absent tant que la migration 0012 n'est pas passée ou pas choisi. */
+  gender?: Genre | null
 }
+
+/** elle = bibliƶatrice, il = bibliƶateur, iel = forme inclusive. */
+export type Genre = 'elle' | 'il' | 'iel'
 
 /** Couleurs vives proposées pour distinguer les deux personnes dans le calendrier et les stats. */
 export const COULEURS = ['#8b5cf6', '#22c55e', '#3b82f6', '#ec4899', '#eab308', '#14b8a6', '#ef4444', '#f97316']

@@ -1,9 +1,11 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { BarreRepartition } from '../../components/BarreRepartition'
 import { classePuce } from '../../components/Puce'
-import { decomposer, estPremierMois, jourParis } from '../../domain/calendrier'
+import { DEBUT_APP, decomposer, estPremierMois, jourParis } from '../../domain/calendrier'
+import { BADGES, objectifsDe, palmares, semainesEntre, type DefBadge } from '../../domain/badges'
+import type { Profil } from '../../domain/types'
 import { formaterEtoiles } from '../../domain/etoiles'
-import { type Badge, badgesDePersonne, derniereSemaineRevelee, moisDe, resultatCoeurs, resultatEtoiles } from '../../domain/scores'
+import { derniereSemaineRevelee, moisDe, resultatCoeurs, resultatEtoiles } from '../../domain/scores'
 import {
   achatsParEtiquette,
   dansPeriode,
@@ -169,6 +171,7 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
       </Carte>
 
       <Badges donnees={donnees} />
+      <Objectifs donnees={donnees} />
 
       <Carte titre="💖 dépenses">
         <BarreRepartition libelle="total" parPersonne={coeurs.scores.map((s) => ({ personne: s.personne, valeur: s.depense }))} formater={formaterEuros} />
@@ -198,19 +201,65 @@ function Stats({ donnees }: { donnees: DonneesStats }) {
   )
 }
 
-/** Badges des deux, côte à côte, sur tout l'historique révélé (pas seulement la période choisie). */
+/** Palmarès des badges hebdo : seuls ceux déjà gagnés apparaissent (les autres restent une surprise). */
 function Badges({ donnees }: { donnees: DonneesStats }) {
   const { membres } = useFoyerPret()
+  const compte = useMemo(
+    () => palmares(membres, semainesEntre(DEBUT_APP, donnees.dernierReveal), donnees.logs, donnees.cadeaux, donnees.taches),
+    [membres, donnees],
+  )
+  const gagnes = BADGES.filter((b) => compte.has(b.cle))
+  return (
+    <Carte titre="🎖️ badges">
+      {gagnes.length === 0 ? (
+        <p className="text-sm text-encre/60">Aucun badge pour l'instant : ils se gagnent chaque semaine, au reveal. Surprise !</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {gagnes.map((badge) => (
+            <TuileBadge key={badge.cle} badge={badge} membres={membres} compte={compte.get(badge.cle)!} />
+          ))}
+        </div>
+      )}
+    </Carte>
+  )
+}
+
+function TuileBadge({ badge, membres, compte }: { badge: DefBadge; membres: Profil[]; compte: Map<string, number> }) {
+  const max = Math.max(...membres.map((p) => compte.get(p.id) ?? 0))
+  const meneurs = membres.filter((p) => (compte.get(p.id) ?? 0) === max)
+  // Même accord pour les deux s'il est le même, sinon la forme inclusive.
+  const genre = membres.every((p) => p.gender === membres[0]?.gender) ? membres[0]?.gender : 'iel'
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-2xl bg-creme p-3 text-center">
+      <span className="text-3xl">{badge.emoji(meneurs.length === 1 ? meneurs[0].gender : genre)}</span>
+      <span className="text-sm font-semibold leading-tight">{badge.titre(genre)}</span>
+      <span className="text-[10px] leading-tight text-encre/50">{badge.regle}</span>
+      <span className="mt-1 flex flex-wrap justify-center gap-x-2 text-xs">
+        {membres.map((p) => (
+          <span key={p.id} className="font-semibold" style={{ color: p.color }}>
+            {meneurs.length === 1 && meneurs[0].id === p.id ? '👑 ' : ''}
+            {p.display_name} ×{compte.get(p.id) ?? 0}
+          </span>
+        ))}
+      </span>
+    </div>
+  )
+}
+
+/** Objectifs des deux, avec le décompte ; pour soi, la semaine en cours compte déjà. */
+function Objectifs({ donnees }: { donnees: DonneesStats }) {
+  const { moi, membres } = useFoyerPret()
   const groupesParTache = new Map(donnees.taches.map((t) => [t.id, t.group_name]))
+  const mesEnCours = donnees.logsEnCours.filter((l) => l.user_id === moi.id)
   const parPersonne = membres.map((personne) => ({
     personne,
-    badges: badgesDePersonne(personne.id, donnees.logs, donnees.depenses, donnees.cadeaux, groupesParTache),
+    objectifs: objectifsDe(personne.id, personne.id === moi.id ? [...donnees.logs, ...mesEnCours] : donnees.logs, groupesParTache),
   }))
   const [premiere] = parPersonne
   if (!premiere) return null
   return (
-    <Carte titre="🎖️ badges">
-      <p className="text-xs text-encre/50">Sur tout l'historique, jusqu'au dernier reveal.</p>
+    <Carte titre="🎯 objectifs">
+      <p className="text-xs text-encre/50">Pour toi, la semaine en cours compte déjà ; pour l'autre, jusqu'au dernier reveal.</p>
       <div className="grid items-center gap-x-2 gap-y-3 text-sm" style={{ gridTemplateColumns: `1fr repeat(${parPersonne.length}, 4.5rem)` }}>
         <span />
         {parPersonne.map(({ personne }) => (
@@ -218,28 +267,31 @@ function Badges({ donnees }: { donnees: DonneesStats }) {
             {personne.display_name}
           </span>
         ))}
-        {premiere.badges.map((badge, i) => (
-          <BadgeLigne key={badge.titre} titre={badge.titre} cellules={parPersonne.map(({ personne, badges }) => ({ id: personne.id, badge: badges[i] }))} />
+        {premiere.objectifs.map((o, i) => (
+          <ObjectifLigne key={o.titre} titre={o.titre} cellules={parPersonne.map(({ personne, objectifs }) => ({ id: personne.id, objectif: objectifs[i] }))} />
         ))}
       </div>
     </Carte>
   )
 }
 
-function BadgeLigne({ titre, cellules }: { titre: string; cellules: { id: string; badge: Badge }[] }) {
+function ObjectifLigne({ titre, cellules }: { titre: string; cellules: { id: string; objectif: ReturnType<typeof objectifsDe>[number] }[] }) {
   return (
     <>
       <span className="leading-tight">{titre}</span>
-      {cellules.map(({ id, badge }) => (
-        <span key={id} className="flex flex-col items-center leading-none">
-          <span className={`text-2xl ${badge.obtenu ? '' : 'opacity-30 grayscale'}`}>{badge.emoji}</span>
-          {!badge.obtenu && badge.progres && (
-            <span className="mt-1 text-[10px] text-encre/50">
-              {formaterEtoiles(badge.progres.actuel)} / {badge.progres.cible}
-            </span>
-          )}
-        </span>
-      ))}
+      {cellules.map(({ id, objectif }) => {
+        const atteint = objectif.actuel >= objectif.cible
+        return (
+          <span key={id} className="flex flex-col items-center leading-none">
+            <span className={`text-2xl ${atteint ? '' : 'opacity-30 grayscale'}`}>{objectif.emoji}</span>
+            {!atteint && (
+              <span className="mt-1 text-[10px] text-encre/50">
+                {formaterEtoiles(objectif.actuel)} / {objectif.cible}
+              </span>
+            )}
+          </span>
+        )
+      })}
     </>
   )
 }
