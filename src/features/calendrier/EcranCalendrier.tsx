@@ -121,7 +121,7 @@ export function EcranCalendrier() {
                         return (
                           <span key={p.id} className="rounded-full px-1 font-bold" style={{ backgroundColor: p.color, color: texteSur(p.color) }}>
                             {valeur > 0 && (vue === 'etoiles' ? formaterEtoiles(valeur) : `${Math.round(valeur / 100)}€`)}
-                            {aUnCadeau && '🎁'}
+                            {aUnCadeau && (valeur > 0 ? '+🎁' : '🎁')}
                           </span>
                         )
                       })}
@@ -130,19 +130,20 @@ export function EcranCalendrier() {
                 })}
               </div>
 
-              <div className="flex flex-wrap justify-end gap-3 px-1 text-xs">
+              {/* Moi à gauche, l'autre à droite. */}
+              <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 px-1 text-xs">
                 {personnes.map((p) => {
                   const nuitsPresent = nuits.filter((n) => !absent(p, n)).length
                   if (p.id !== moi.id && !revelee) {
                     return (
-                      <span key={p.id} className="text-encre/50">
+                      <span key={p.id} className="ml-auto text-right text-encre/50">
                         <span style={{ color: p.color }}>●</span> 🏅 révélé dimanche 18h
                       </span>
                     )
                   }
                   const cadeauxPersonne = sommeDe(p.id, cadeauxSemaine, (c) => c.estimated_cents)
                   return (
-                    <span key={p.id}>
+                    <span key={p.id} className={p.id === moi.id ? 'text-left' : 'ml-auto text-right'}>
                       <span style={{ color: p.color }}>●</span>{' '}
                       {vue === 'etoiles'
                         ? `⭐ ${formaterEtoiles(etoilesDe(p.id, logsSemaine))}`

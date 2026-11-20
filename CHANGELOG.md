@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (calendrier : lisibilité)
+
+- **Calendrier** : sous chaque semaine, mon total est aligné à gauche et celui de l'autre à droite. En vue 💖, une journée avec dépenses et cadeau affiche « 29€+🎁 » (et plus « 29€🎁 », qu'on pouvait lire comme 29 € de cadeau) (`EcranCalendrier.tsx`).
+
 ## 2026-11-20 (pile de cartes : ordre d'ajout)
 
 - **Pile de cartes** : elle suit l'ordre d'ajout dans l'app (colonne `created_at`, déjà en base), plus la date du log. Une tâche ou une dépense logée pour hier se pose donc sur le dessus de la pile. Les listes « mes logs » et « mes entrées » restent chronologiques. Les dépenses récurrentes, générées automatiquement, restent sous la pile (`PileDeCartes.tsx`, `services/taches.ts`, `services/depenses.ts`).
