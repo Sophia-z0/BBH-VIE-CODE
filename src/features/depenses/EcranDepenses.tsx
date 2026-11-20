@@ -111,7 +111,7 @@ export function EcranDepenses() {
    */
   async function enregistrerLot(lot: LotTicket) {
     // Date du ticket si elle est dans la semaine en cours, sinon la date choisie à l'écran.
-    const instant = instantChoisi(lot.jour ? quandDuJour(lot.jour) : quand)
+    const instant = lot.instant ?? instantChoisi(quand)
     if (lot.destination.type === 'cadeau') {
       const cadeau = await ajouterCadeau({ description: lot.magasin || 'courses du ticket', estimated_cents: lot.montant, given_at: instant })
       setCadeaux((liste) => [cadeau, ...liste])

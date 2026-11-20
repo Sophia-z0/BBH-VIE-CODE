@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (ticket : date et heure d'achat)
+
+- **Ticket de caisse** : la lecture cherche aussi l'heure d'achat, et la date est remise au bon format même si elle revient en « 19/11/26 » ou « 19.11.2026 ». Le panneau affiche ce qui a été lu (« 🗓️ jeu. 19/11 à 18h42 »), ou explique pourquoi la date choisie à l'écran est utilisée à la place (date illisible, ou hors de la semaine en cours). Les dépenses sont enregistrées à cette date et heure (`lire-ticket/index.ts`, `services/ticket.ts`, `PanneauTicket.tsx`, `EcranDepenses.tsx`).
+- **À faire côté Supabase** : redéployer la fonction `lire-ticket`.
+
 ## 2026-11-20 (tickets mélangés : une dépense par catégorie)
 
 - **Ticket de caisse** : la lecture propose une catégorie du foyer pour chaque article. Le panneau les regroupe par catégorie avec un sous-total ; toucher l'emoji d'un article ouvre la ligne de tuiles pour le changer de catégorie ou l'offrir au foyer (🎁). Le bouton crée une dépense par catégorie (même magasin et même date, chacune avec ses articles) et un cadeau pour le groupe 🎁. Si un enregistrement échoue, les lots déjà enregistrés quittent la liste : réessayer ne crée pas de doublon (`PanneauTicket.tsx`, `EcranDepenses.tsx`, `services/ticket.ts`).

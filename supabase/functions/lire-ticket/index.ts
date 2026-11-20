@@ -22,7 +22,8 @@ function schema(categories: string[]) {
     type: 'object',
     properties: {
       magasin: { type: 'string', description: 'Nom du magasin, ou chaîne vide si illisible.' },
-      date: { type: 'string', description: 'Date d’achat au format AAAA-MM-JJ, ou chaîne vide si illisible.' },
+      date: { type: 'string', description: 'Date d’achat au format AAAA-MM-JJ (année sur 4 chiffres), ou chaîne vide si illisible.' },
+      heure: { type: 'string', description: 'Heure d’achat au format HH:MM (24 h), ou chaîne vide si illisible.' },
       articles: {
         type: 'array',
         items: {
@@ -40,7 +41,7 @@ function schema(categories: string[]) {
       },
       total_cents: { type: 'integer', description: 'Total payé imprimé sur le ticket, en centimes, ou 0 si illisible.' },
     },
-    required: ['magasin', 'date', 'articles', 'total_cents'],
+    required: ['magasin', 'date', 'heure', 'articles', 'total_cents'],
     additionalProperties: false,
   }
 }
@@ -52,6 +53,8 @@ Liste chaque ligne d'article acheté, dans l'ordre du ticket, avec le prix payé
 Une remise ou un bon de réduction est une ligne à montant négatif, juste après l'article concerné ;
 donne-lui la même catégorie que cet article.
 N'inclus pas les lignes de total, sous-total, TVA, moyen de paiement, rendu monnaie ni fidélité.
+Cherche aussi la date et l'heure d'achat, souvent tout en haut ou tout en bas du ticket, près du numéro
+de caisse ou de transaction (par exemple « 19/11/26 18:42 ») : convertis la date en AAAA-MM-JJ et l'heure en HH:MM.
 Si la photo n'est pas un ticket de caisse, renvoie une liste d'articles vide.`
 
 /** Noms de catégories reçus de l'app : 30 au plus, 40 caractères au plus, sans doublon. */

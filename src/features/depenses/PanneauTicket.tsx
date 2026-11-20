@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { TuileRetournable } from '../../components/TuileRetournable'
-import { jourLoggable } from '../../domain/calendrier'
+import { semaineDe } from '../../domain/semaine'
 import type { ArticleTicket, Categorie } from '../../domain/types'
 import { formaterEuros } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
-import { lireTicket, type LectureTicket } from '../../services/ticket'
+import { formaterJourHeure } from '../../lib/dates'
+import { instantDAchat, lireTicket, type LectureTicket } from '../../services/ticket'
 
 const CATEGORIE_ALIMENTAIRE = /aliment|courses/i
 /** Destination « offrir au foyer » (les autres destinations sont des id de catégorie). */
@@ -18,8 +19,8 @@ export interface LotTicket {
   destination: Destination
   montant: number
   magasin: string
-  /** Jour d'achat lu sur le ticket, s'il est dans la semaine en cours (AAAA-MM-JJ). */
-  jour: string | null
+  /** Date et heure d'achat lues sur le ticket, si elles sont dans la semaine en cours. */
+  instant: Date | null
   articles: ArticleTicket[]
 }
 
@@ -94,6 +95,10 @@ export function PanneauTicket({
   const restants = lecture?.articles.filter((_, i) => !faits[i]) ?? []
   const toutCoche = coches.length > 0 && coches.every((c, i) => c || faits[i])
 
+  // Date du ticket : gardée si elle tombe dans la semaine de jeu en cours (sinon, la date choisie à l'écran).
+  const achat = lecture ? instantDAchat(lecture) : null
+  const achatGarde = achat && achat >= semaineDe().debut && achat <= new Date() ? achat : null
+
   const nomDe = (d: string) => (d === CADEAU ? 'offrir au foyer' : categories.find((c) => c.id === d)?.name ?? '?')
   const emojiDe = (d: string) => (d === CADEAU ? '🎁' : categories.find((c) => c.id === d)?.emoji ?? '❔')
 
@@ -102,7 +107,6 @@ export function PanneauTicket({
     setEnvoi(true)
     setErreur(null)
     const magasin = lecture.magasin.trim().slice(0, 40)
-    const jour = /^\d{4}-\d{2}-\d{2}$/.test(lecture.date) && jourLoggable(lecture.date) ? lecture.date : null
     try {
       for (const [d, indices] of lotsValides) {
         const retenus = indices.filter((i) => coches[i])
@@ -111,7 +115,7 @@ export function PanneauTicket({
           destination: d === CADEAU || !categorie ? { type: 'cadeau' } : { type: 'categorie', categorie },
           montant: totalDe(indices),
           magasin,
-          jour,
+          instant: achatGarde,
           articles: retenus.map((i) => ({ libelle: lecture.articles[i].libelle, montant_cents: lecture.articles[i].montant_cents })),
         })
         // Enregistré : ces articles quittent la liste (pas de doublon si on réessaie après une erreur).
@@ -137,6 +141,16 @@ export function PanneauTicket({
             ✕
           </button>
         </div>
+
+        {lecture && lecture.articles.length > 0 && (
+          <p className="-mt-2 text-sm text-encre/60">
+            {achatGarde
+              ? `🗓️ ${formaterJourHeure(achatGarde.toISOString())}${lecture.heure ? '' : ' (heure illisible)'}`
+              : achat
+                ? `🗓️ ${formaterJourHeure(achat.toISOString())} : hors de la semaine en cours, enregistré à la date choisie sur l’écran`
+                : '🗓️ date illisible : enregistré à la date choisie sur l’écran'}
+          </p>
+        )}
 
         {!lecture && !erreur && <p className="animate-pulse py-10 text-center text-encre/60">Lecture du ticket…</p>}
         {erreur && <p className="rounded-xl bg-red-100 p-3 text-sm text-red-800">{erreur}</p>}

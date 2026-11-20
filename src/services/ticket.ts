@@ -7,6 +7,8 @@ export interface LectureTicket {
   magasin: string
   /** AAAA-MM-JJ, ou chaîne vide. */
   date: string
+  /** HH:MM, ou chaîne vide. */
+  heure: string
   /** `categorie` : nom de la catégorie du foyer proposée pour l'article. */
   articles: (ArticleTicket & { categorie?: string })[]
   total_cents: number
@@ -36,5 +38,32 @@ export async function lireTicket(fichier: File, categories: string[]): Promise<L
     throw new Error(detail?.erreur ?? 'Le ticket n’a pas pu être lu, réessaie avec une photo plus nette.')
   }
   if (!data) throw new Error('Le ticket n’a pas pu être lu.')
-  return data
+  return { ...data, date: normaliserDate(data.date), heure: normaliserHeure(data.heure) }
+}
+
+/** AAAA-MM-JJ, même si la lecture a renvoyé « 19/11/26 » ou « 19.11.2026 » ; chaîne vide sinon. */
+function normaliserDate(brut: string | undefined): string {
+  const date = (brut ?? '').trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date
+  const m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})$/.exec(date)
+  if (!m) return ''
+  const annee = m[3].length === 2 ? `20${m[3]}` : m[3]
+  return `${annee}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
+}
+
+/** HH:MM, même si la lecture a renvoyé « 18h42 » ou « 18:42:05 » ; chaîne vide sinon. */
+function normaliserHeure(brut: string | undefined): string {
+  const m = /^(\d{1,2})[:hH](\d{2})/.exec((brut ?? '').trim())
+  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return ''
+  return `${m[1].padStart(2, '0')}:${m[2]}`
+}
+
+/**
+ * Instant d'achat lu sur le ticket (heure du téléphone ; midi si l'heure est illisible),
+ * ou null si la date est illisible.
+ */
+export function instantDAchat(lecture: Pick<LectureTicket, 'date' | 'heure'>): Date | null {
+  if (!lecture.date) return null
+  const instant = new Date(`${lecture.date}T${lecture.heure || '12:00'}`)
+  return Number.isNaN(instant.getTime()) ? null : instant
 }
