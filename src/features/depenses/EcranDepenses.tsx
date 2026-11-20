@@ -212,8 +212,8 @@ export function EcranDepenses() {
   const pile = CARTES_COLLECTEES ? (
     <PileDeCartes
       atterrissage={collecte.atterrissage}
-      // Les dépenses récurrentes, générées automatiquement, restent sous la pile.
-      cartes={parAjout(entrees, (e) => (e.type === 'depense' && e.valeur.recurring_id ? undefined : e.valeur.created_at))
+      // Une dépense récurrente se pose sur la pile quand elle est créée, le jour de son échéance.
+      cartes={parAjout(entrees, (e) => e.valeur.created_at)
         .filter((e) => e.valeur.id !== collecte.enVol)
         .map((e) =>
           e.type === 'depense'

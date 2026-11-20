@@ -1,3 +1,5 @@
+import { jourParis } from '../domain/calendrier'
+import { semaineDe } from '../domain/semaine'
 import { toutesLesPages } from '../lib/pagination'
 import { supabase } from '../lib/supabase'
 import type { ArticleTicket, Cadeau, Categorie, Depense, DepenseRecurrente } from '../domain/types'
@@ -118,7 +120,9 @@ export async function listerRecurrentes(): Promise<DepenseRecurrente[]> {
 export async function creerRecurrente(
   recurrente: Pick<DepenseRecurrente, 'category_id' | 'amount_cents' | 'tag' | 'frequency' | 'day_of_month' | 'month_of_year'>,
 ) {
-  const { error } = await supabase.from('recurring_expenses').insert(recurrente)
+  // Génération à partir du début de la semaine de jeu en cours : une échéance déjà passée cette
+  // semaine (ou aujourd'hui) est créée tout de suite, au lieu d'attendre le mois suivant.
+  const { error } = await supabase.from('recurring_expenses').insert({ ...recurrente, last_generated_on: jourParis(semaineDe().debut) })
   if (error) throw error
 }
 

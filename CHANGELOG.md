@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (dépenses récurrentes visibles le jour de l'échéance)
+
+- **Dépenses récurrentes** : une récurrente créée dont l'échéance tombe aujourd'hui, ou plus tôt dans la semaine en cours, est générée tout de suite (avant, la première échéance n'arrivait que le mois suivant). Sa carte se pose sur la pile comme les autres, et n'est plus rangée dessous (`services/depenses.ts`, `EcranDepenses.tsx`).
+
 ## 2026-11-20 (revenus mois par mois, part juste lissée, report trimestriel)
 
 - **Revenus mensuels** : chacun·e saisit son revenu net de chaque mois. Une carte « 💶 ton revenu net de … ? » reste en haut des tâches et des dépenses tant que le mois dernier n'est pas renseigné. Les 12 derniers mois sont modifiables dans les réglages, section « mes revenus » (`features/reglages/Revenus.tsx`, `services/revenus.ts`).
