@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (cartes collectées)
+
+- **Les tuiles deviennent des cartes qu'on collectionne** : après le message au dos, la carte se remet à l'endroit et vole jusqu'à la pile du bandeau, façon solitaire, où elle se pose de travers par-dessus les autres. La pile montre les 6 dernières cartes de la semaine (tâches et dépenses ; occasionnelles orangées, cadeaux roses). « annuler » reste proposé sous la pile quelques secondes. Le total passe sous le libellé du bandeau (`components/PileDeCartes.tsx`, `components/useCollecte.ts`, `lib/envol.ts`, `EcranLog.tsx`, `EcranDepenses.tsx`).
+- **Retour arrière** : `CARTES_COLLECTEES = false` dans `src/lib/options.ts` remet l'ancienne version, ou `git revert` de ce commit.
+
 ## 2026-11-20 (dépenses comme les tâches, étiquettes, bandeaux, couleurs douces)
 
 - **Dépenses** : en haut, deux tuiles pour saisir, 💶 montant ou 🧾 ticket de caisse (📷 scanner). Dessous, une seule ligne de tuiles pour dire où va la dépense : 🎁 offrir au foyer, puis les catégories (`EcranDepenses.tsx`).

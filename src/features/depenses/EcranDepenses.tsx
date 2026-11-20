@@ -3,12 +3,15 @@ import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { BandeauSemaine } from '../../components/BandeauSemaine'
+import { PileDeCartes } from '../../components/PileDeCartes'
 import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
+import { useCollecte } from '../../components/useCollecte'
 import { encouragementAuHasard, type Occasion } from '../../domain/encouragements'
 import type { Cadeau, Categorie, Depense } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { formaterJourHeure } from '../../lib/dates'
 import { messageErreur } from '../../lib/erreurs'
+import { CARTES_COLLECTEES } from '../../lib/options'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { PanneauTicket, type TicketValide } from './PanneauTicket'
@@ -55,13 +58,15 @@ export function EcranDepenses() {
   const [photo, setPhoto] = useState<File | null>(null)
 
   useEffect(() => () => clearTimeout(minuteurRetour.current), [])
+  const collecte = useCollecte(() => setRetour(null))
 
   function feter(occasion: Occasion, retourAffiche: RetourAffiche) {
     setCelebration((c) => ({ cle: c.cle + 1, occasion }))
     setRetour(retourAffiche)
     navigator.vibrate?.(30)
     clearTimeout(minuteurRetour.current)
-    minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
+    if (CARTES_COLLECTEES && retourAffiche.entree) collecte.collecter(retourAffiche.cle, retourAffiche.entree.valeur.id)
+    else minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
     setMontant('')
     setTag('')
     setQuand(quandInitial)
@@ -76,7 +81,8 @@ export function EcranDepenses() {
 
   function fermerRetour() {
     clearTimeout(minuteurRetour.current)
-    setRetour(null)
+    if (CARTES_COLLECTEES && retour?.entree) collecte.accelerer()
+    else setRetour(null)
   }
 
   async function enregistrerDepense(categorie: Categorie) {
@@ -159,6 +165,7 @@ export function EcranDepenses() {
 
   async function annuler(entree: Entree) {
     try {
+      collecte.oublier(entree.valeur.id)
       if (entree.type === 'depense') {
         await supprimerDepense(entree.valeur.id)
         setDepenses((liste) => liste.filter((d) => d.id !== entree.valeur.id))
@@ -188,12 +195,28 @@ export function EcranDepenses() {
     ...cadeaux.map((valeur): Entree => ({ type: 'cadeau', valeur })),
   ].sort((a, b) => dateEntree(b).localeCompare(dateEntree(a)))
 
+  const dernierAnnulable = !retour ? entrees.find((e) => e.valeur.id === collecte.annulable) : undefined
+  const pile = CARTES_COLLECTEES ? (
+    <PileDeCartes
+      atterrissage={collecte.atterrissage}
+      cartes={entrees
+        .filter((e) => e.valeur.id !== collecte.enVol)
+        .map((e) =>
+          e.type === 'depense'
+            ? { id: e.valeur.id, emoji: categorie(e.valeur.category_id)?.emoji ?? '💖', nom: categorie(e.valeur.category_id)?.name ?? '', classe: 'bg-white' }
+            : { id: e.valeur.id, emoji: '🎁', nom: e.valeur.description, classe: 'bg-pink-100' },
+        )}
+      onAnnuler={dernierAnnulable && (() => annuler(dernierAnnulable))}
+    />
+  ) : undefined
+
   return (
     <div className="flex flex-col gap-5 pt-4">
       <BandeauSemaine
         couleur={moi.color}
         libelle="mes 💖 cette semaine"
         valeur={formaterEuros(totalDepenses)}
+        pile={pile}
         detail={
           cadeaux.length > 0 && `+ 🎁 ${cadeaux.length} cadeau${cadeaux.length > 1 ? 'x' : ''} (${formaterEuros(totalCadeaux)} estimés)`
         }
@@ -264,7 +287,7 @@ export function EcranDepenses() {
 
       {/* Où va la dépense : le cadeau rose en tête (hors total 💖), puis les catégories. */}
       <div className="sans-barre -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4">
-        <TuileRetournable dos={dosDe(CLE_CADEAU)} onTap={enregistrerCadeau} onFermer={fermerRetour} classeFace="tuile-rose">
+        <TuileRetournable cle={CLE_CADEAU} dos={dosDe(CLE_CADEAU)} onTap={enregistrerCadeau} onFermer={fermerRetour} classeFace="tuile-rose">
           <span className="text-4xl">🎁</span>
           <span className="line-clamp-3 text-xs leading-tight font-semibold">offrir au foyer</span>
           <span className="text-[10px] leading-tight text-encre/60">hors dépenses</span>
@@ -274,6 +297,7 @@ export function EcranDepenses() {
           .map((c) => (
             <TuileRetournable
               key={c.id}
+              cle={c.id}
               dos={dosDe(c.id)}
               onTap={() => enregistrerDepense(c)}
               onFermer={fermerRetour}

@@ -4,7 +4,9 @@ import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
+import { PileDeCartes } from '../../components/PileDeCartes'
 import { TuileRetournable, type Dos } from '../../components/TuileRetournable'
+import { useCollecte } from '../../components/useCollecte'
 import { aujourdhui, jourParis } from '../../domain/calendrier'
 import { encouragementAuHasard } from '../../domain/encouragements'
 import { serieEnCours } from '../../domain/scores'
@@ -13,6 +15,7 @@ import { etoilesDuLog, formaterEtoiles, totalEtoiles } from '../../domain/etoile
 import type { LogTache, Tache } from '../../domain/types'
 import { formaterJourHeure } from '../../lib/dates'
 import { messageErreur } from '../../lib/erreurs'
+import { CARTES_COLLECTEES } from '../../lib/options'
 import { loguerTache, supprimerLog } from '../../services/taches'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useTachesSemaine } from './useTachesSemaine'
@@ -43,6 +46,7 @@ export function EcranLog() {
   const minuteurRetour = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => () => clearTimeout(minuteurRetour.current), [])
+  const collecte = useCollecte(() => setRetour(null))
 
   const plans = useMemo(() => plansDeTaches(taches.filter((t) => t.active)), [taches])
 
@@ -55,7 +59,8 @@ export function EcranLog() {
       setRetour({ log, tache, message: encouragementAuHasard('tache', { moi: moi.display_name }) })
       navigator.vibrate?.(30)
       clearTimeout(minuteurRetour.current)
-      minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
+      if (CARTES_COLLECTEES) collecte.collecter(tache.id, log.id)
+      else minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
       setADeux(false)
       setQuand(quandInitial)
     } catch (e) {
@@ -65,12 +70,14 @@ export function EcranLog() {
 
   function fermerRetour() {
     clearTimeout(minuteurRetour.current)
-    setRetour(null)
+    if (CARTES_COLLECTEES) collecte.accelerer()
+    else setRetour(null)
   }
 
   async function annuler(log: LogTache) {
     try {
       await supprimerLog(log.id)
+      collecte.oublier(log.id)
       setMesLogs((logs) => logs.filter((l) => l.id !== log.id))
       if (retour?.log.id === log.id) setRetour(null)
     } catch (e) {
@@ -86,6 +93,19 @@ export function EcranLog() {
     retour?.tache.id === tache.id
       ? { gain: `+${formaterEtoiles(etoilesDuLog(retour.log))} ⭐`, message: retour.message, onAnnuler: () => annuler(retour.log) }
       : null
+  const dernierAnnulable = !retour ? mesLogs.find((l) => l.id === collecte.annulable) : undefined
+  const pile = CARTES_COLLECTEES ? (
+    <PileDeCartes
+      atterrissage={collecte.atterrissage}
+      cartes={mesLogs
+        .filter((l) => l.id !== collecte.enVol)
+        .map((l) => {
+          const t = nomTache(l.task_id)
+          return { id: l.id, emoji: t?.emoji ?? '⭐', nom: t?.name ?? '', classe: t?.everyday ? 'bg-white' : 'bg-orange-100' }
+        })}
+      onAnnuler={dernierAnnulable && (() => annuler(dernierAnnulable))}
+    />
+  ) : undefined
   const serie = serieEnCours([...joursActifs, ...mesLogs.map((l) => jourParis(l.done_at))], aujourdhui())
 
   return (
@@ -94,6 +114,7 @@ export function EcranLog() {
         couleur={moi.color}
         libelle="mes étoiles cette semaine"
         valeur={`⭐ ${formaterEtoiles(totalEtoiles(mesLogs))}`}
+        pile={pile}
         detail={
           <>
             {mesLogs.length === 0 ? 'Première tâche de la semaine ?' : `${mesLogs.length} tâche${mesLogs.length > 1 ? 's' : ''} loguée${mesLogs.length > 1 ? 's' : ''}`}
@@ -171,6 +192,7 @@ function Plan({
             {liste.map((tache) => (
               <TuileRetournable
                 key={tache.id}
+                cle={tache.id}
                 dos={dosDe(tache)}
                 onTap={() => onLog(tache)}
                 onFermer={onFermer}

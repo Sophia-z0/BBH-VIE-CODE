@@ -17,6 +17,7 @@ export function TuileRetournable({
   onTap,
   onFermer,
   classeFace,
+  cle,
   children,
 }: {
   dos: Dos | null
@@ -24,6 +25,8 @@ export function TuileRetournable({
   onFermer: () => void
   /** Fond et effets de la tuile (blanche, rayonnante…), identiques sur la face et le dos. */
   classeFace: string
+  /** Repère la tuile pour l'envol vers la pile (cartes collectées). */
+  cle?: string
   children: ReactNode
 }) {
   // Garde le dernier dos pendant que la tuile se referme, pour qu'il ne disparaisse pas en pleine rotation.
@@ -33,7 +36,7 @@ export function TuileRetournable({
   const affiche = dos ?? dernierDos
 
   return (
-    <div className="h-40 w-28 flex-none snap-start [perspective:800px]">
+    <div data-carte={cle} className="h-40 w-28 flex-none snap-start [perspective:800px]">
       <div className={`tuile-carte relative h-full w-full ${retournee ? 'tuile-carte-retournee' : ''}`}>
         <button
           type="button"
