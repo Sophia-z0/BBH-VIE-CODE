@@ -18,7 +18,6 @@ import { messageErreur } from '../../lib/erreurs'
 import { CARTES_COLLECTEES } from '../../lib/options'
 import { loguerTache, supprimerLog } from '../../services/taches'
 import { useFoyerPret } from '../foyer/FoyerContext'
-import { CarteRevenuManquant } from '../reglages/Revenus'
 import { useTachesSemaine } from './useTachesSemaine'
 
 const DUREE_ANNULATION_MS = 5000
@@ -123,8 +122,6 @@ export function EcranLog() {
           </>
         }
       />
-
-      <CarteRevenuManquant idMoi={moi.id} />
 
       <OptionsLog aDeux={aDeux} setADeux={setADeux} quand={quand} setQuand={setQuand} />
 
