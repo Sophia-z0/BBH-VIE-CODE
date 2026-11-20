@@ -23,8 +23,6 @@ interface Semainier {
   /** Ses logs de la semaine (les siens et ceux faits à deux). */
   logs: LogTache[]
   etoiles: number
-  /** Étoiles de l'autre, pour les badges à deux. */
-  etoilesAutre: number | null
   cadeaux: number
   taches: Map<string, Tache>
 }
@@ -105,23 +103,16 @@ const REGLES: Regle[] = [
   {
     cle: 'levetot',
     emoji: fixe('🐓'),
-    titre: fixe('lève-tôt'),
-    regle: '3 tâches avant 8 h en une semaine',
-    gagne: (s) => s.logs.filter((l) => heure(l) >= 4 && heure(l) < 8).length >= 3,
+    titre: (g) => accord(g, 'la p’tite lève-tôt', 'le p’tit lève-tôt', 'læ p’tit·e lève-tôt'),
+    regle: '3 tâches avant 9 h en une semaine',
+    gagne: (s) => s.logs.filter((l) => heure(l) >= 4 && heure(l) < 9).length >= 3,
   },
   {
-    cle: 'duo',
-    emoji: fixe('🤝'),
-    titre: fixe('duo de choc'),
-    regle: 'tous les deux plus de 30 ⭐ la même semaine',
-    gagne: (s) => s.etoiles > 30 && (s.etoilesAutre ?? 0) > 30,
-  },
-  {
-    cle: 'zeropoussiere',
-    emoji: fixe('🧹'),
-    titre: fixe('zéro poussière'),
-    regle: 'au moins une tâche chaque jour de la semaine',
-    gagne: (s) => new Set(s.logs.map((l) => jourParis(l.done_at))).size >= 7,
+    cle: 'adeux',
+    emoji: fixe('👩‍❤️‍👨'),
+    titre: fixe('à 2 c’est mieux !'),
+    regle: '3 tâches faites à deux en une semaine (badge pour les deux)',
+    gagne: (s) => s.logs.filter((l) => l.shared).length >= 3,
   },
 ]
 
@@ -141,12 +132,10 @@ export function badgesDeLaSemaine(
   const etoiles = new Map(personnes.map((p) => [p.id, etoilesDe(p.id, logsSemaine)]))
   return new Map(
     personnes.map((personne) => {
-      const autre = personnes.find((p) => p.id !== personne.id)
       const s: Semainier = {
         personne,
         logs: logsSemaine.filter((l) => l.user_id === personne.id || l.shared),
         etoiles: etoiles.get(personne.id) ?? 0,
-        etoilesAutre: autre ? (etoiles.get(autre.id) ?? 0) : null,
         cadeaux: cadeaux.filter((c) => c.user_id === personne.id && dans(c.given_at)).length,
         taches: parTache,
       }

@@ -179,3 +179,48 @@ export function contexteRevenus(personnes: Profil[], revenus: RevenuMensuel[], d
   }
   return { reference, ajustements }
 }
+
+// --- Messages bienveillants ------------------------------------------------
+
+/** Moyenne des mois renseignés parmi `mois`, ou null si aucun. */
+function moyenneSur(idPersonne: string, revenus: RevenuMensuel[], mois: CleMois[]): number | null {
+  const siens = revenusDe(idPersonne, revenus)
+  const valeurs = mois.map((m) => siens.get(m)).filter((v): v is number => v !== undefined)
+  return valeurs.length === 0 ? null : valeurs.reduce((t, v) => t + v, 0) / valeurs.length
+}
+
+/** Seuil d'« encore un petit effort » : à moins de 15 % de l'an dernier. */
+const PRESQUE = 0.85
+
+/**
+ * Message comparatif bienveillant après la saisie du revenu de `mois` (avant → après),
+ * ou null s'il n'y a rien d'encourageant à dire. Du plus parlant au plus général.
+ */
+export function messageRevenu(idPersonne: string, avant: RevenuMensuel[], apres: RevenuMensuel[], mois: CleMois): string | null {
+  const [annee, numero] = mois.split('-').map(Number)
+  const t = trimestre(annee, Math.floor((numero - 1) / 3) + 1)
+  const memeTrimestreAvant = t.mois.map((m) => moisDecale(m, -12))
+  const trimestreCette = moyenneSur(idPersonne, apres, t.mois)
+  const trimestreAvant = moyenneSur(idPersonne, apres, memeTrimestreAvant)
+  if (trimestreCette !== null && trimestreAvant !== null) {
+    if (trimestreCette > trimestreAvant) return `🏆 Tu fais mieux que l'an dernier au même trimestre ! Bravo 💪`
+    if (trimestreCette >= PRESQUE * trimestreAvant)
+      return `🌱 Encore un petit effort et tu auras la même moyenne trimestrielle que l'an dernier à la même époque !`
+  }
+
+  const annuelle = (r: RevenuMensuel[], a: number) => moyenneSur(idPersonne, r, Array.from({ length: 12 }, (_, i) => cleMois(a, i + 1)))
+  const cetteAnnee = annuelle(apres, annee)
+  const anneeDerniere = annuelle(apres, annee - 1)
+  if (cetteAnnee !== null && anneeDerniere !== null && cetteAnnee > anneeDerniere && (annuelle(avant, annee) ?? 0) <= anneeDerniere)
+    return `🚀 Ta moyenne ${annee} passe au-dessus de celle de ${annee - 1}, chapeau !`
+
+  const sixMois = Array.from({ length: MOIS_LISSAGE }, (_, i) => moisDecale(moisDeDate(new Date()), -i))
+  const sixAvant = moyenneSur(idPersonne, avant, sixMois)
+  const sixApres = moyenneSur(idPersonne, apres, sixMois)
+  if (sixAvant !== null && sixApres !== null && sixApres > sixAvant)
+    return `📈 Tu augmentes ta moyenne sur les 6 derniers mois : ${Math.round(sixApres / 100).toLocaleString('fr-FR')} € par mois !`
+
+  if (cetteAnnee !== null && anneeDerniere !== null && cetteAnnee > anneeDerniere)
+    return `✨ Ta moyenne augmente par rapport à l'année dernière, continue comme ça !`
+  return null
+}

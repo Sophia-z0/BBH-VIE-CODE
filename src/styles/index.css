@@ -158,3 +158,63 @@ body {
 .sans-barre::-webkit-scrollbar {
   display: none;
 }
+
+/* Cérémonie du dimanche (features/podium/Ceremonie.tsx) : pluie d'émojis, entrées, remise des badges. */
+@keyframes pluie {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(var(--rot, 180deg));
+    opacity: 0.9;
+  }
+}
+.goutte-pluie {
+  animation: pluie var(--duree, 3s) linear var(--delai, 0s) forwards;
+  opacity: 0;
+}
+@keyframes entree-ceremonie {
+  0% {
+    transform: translateY(24px) scale(0.96);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.entree-ceremonie {
+  animation: entree-ceremonie 600ms cubic-bezier(0.2, 0.9, 0.3, 1.2) var(--delai, 0ms) both;
+}
+@keyframes remise {
+  0% {
+    transform: scale(0) rotate(-25deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.35) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+.remise-badge {
+  display: inline-block;
+  animation: remise 700ms cubic-bezier(0.3, 1.6, 0.5, 1) var(--delai, 0ms) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .goutte-pluie {
+    display: none;
+  }
+  .entree-ceremonie,
+  .remise-badge {
+    animation: none;
+    opacity: 1;
+  }
+}

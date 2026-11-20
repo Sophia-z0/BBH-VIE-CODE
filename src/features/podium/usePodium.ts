@@ -9,7 +9,7 @@ import {
   type ResultatCoeurs,
   type ResultatEtoiles,
 } from '../../domain/scores'
-import { badgesDeLaSemaine, type DefBadge } from '../../domain/badges'
+import { badgesDeLaSemaine, objectifsDe, type DefBadge, type Objectif } from '../../domain/badges'
 import { contexteRevenus, reportPour, trimestreDe, type Report } from '../../domain/revenus'
 import type { Semaine } from '../../domain/semaine'
 import type { Profil } from '../../domain/types'
@@ -30,6 +30,8 @@ export interface Podium {
   reportMois: Report | null
   /** Badges gagnés pendant la semaine révélée, par l'une ou l'autre. */
   nouveauxBadges: { personne: Profil; badge: DefBadge }[]
+  /** Objectifs atteints pendant la semaine révélée : leur remise officielle a lieu à la cérémonie. */
+  nouveauxObjectifs: { personne: Profil; objectif: Objectif }[]
 }
 
 /** Résultats de la dernière semaine et du dernier mois révélés, plus les badges débloqués cette semaine-là. */
@@ -83,6 +85,14 @@ export function usePodium(personnes: Profil[]) {
         nouveauxBadges: [...badgesDeLaSemaine(personnes, semaine, logs, cadeaux, taches)].flatMap(([id, badges]) => {
           const personne = personnes.find((p) => p.id === id)!
           return badges.map((badge) => ({ personne, badge }))
+        }),
+        nouveauxObjectifs: personnes.flatMap((personne) => {
+          const groupes = new Map(taches.map((t) => [t.id, t.group_name]))
+          const jusqua = (date: Date) => objectifsDe(personne.id, logs.filter((l) => new Date(l.done_at) < date), groupes)
+          const avant = jusqua(semaine.debut)
+          return jusqua(semaine.fin)
+            .filter((o, i) => o.actuel >= o.cible && avant[i].actuel < avant[i].cible)
+            .map((objectif) => ({ personne, objectif }))
         }),
       }
       if (!annule) setPodium(resultat)

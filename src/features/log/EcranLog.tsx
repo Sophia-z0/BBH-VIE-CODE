@@ -2,6 +2,7 @@ import { BandeauSemaine } from '../../components/BandeauSemaine'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
+import { AnnonceObjectif, useObjectifAtteint } from './AnnonceObjectif'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { classePuce } from '../../components/Puce'
 import { PileDeCartes, parAjout } from '../../components/PileDeCartes'
@@ -49,6 +50,7 @@ export function EcranLog() {
   const collecte = useCollecte(() => setRetour(null))
 
   const plans = useMemo(() => plansDeTaches(taches.filter((t) => t.active)), [taches])
+  const objectif = useObjectifAtteint(moi.id, mesLogs, taches, !chargement)
 
   async function loguer(tache: Tache) {
     setErreurLog(null)
@@ -158,6 +160,7 @@ export function EcranLog() {
       )}
 
       {celebration > 0 && <Celebration cle={celebration} />}
+      {objectif.annonce && <AnnonceObjectif objectif={objectif.annonce} onFermer={objectif.fermer} />}
 
     </div>
   )

@@ -9,3 +9,6 @@ export const CARTES_COLLECTEES = true
  * Mettre à false pour une pile qui ne réagit pas au toucher.
  */
 export const PILE_FIDGET = true
+
+/** Cérémonie du dimanche en plein écran, obligatoire à la première ouverture après le reveal (false = ancien renvoi vers le podium). */
+export const CEREMONIE_OBLIGATOIRE = true

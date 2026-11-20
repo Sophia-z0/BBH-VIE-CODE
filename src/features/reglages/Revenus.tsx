@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { cleMois, moisDeDate, moisDecale, nomDuMois, type CleMois } from '../../domain/revenus'
+import { cleMois, messageRevenu, moisDeDate, moisDecale, nomDuMois, type CleMois } from '../../domain/revenus'
 import type { RevenuMensuel } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
@@ -69,7 +69,7 @@ export function CarteRevenuManquant({ idMoi }: { idMoi: string }) {
 }
 
 /** Première année proposée dans les réglages (sert au lissage des premiers mois de l'app). */
-const PREMIERE_ANNEE = 2025
+const PREMIERE_ANNEE = 2026
 
 /** Moyenne mensuelle des mois renseignés d'une année, ou null si aucun. */
 function moyenneAnnuelle(revenus: RevenuMensuel[], annee: number): number | null {
@@ -105,14 +105,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
       const revenu = await enregistrerRevenu(idMoi, mois, centimes)
       const nouveaux = [...(revenus ?? []).filter((r) => !r.month.startsWith(mois)), revenu]
       setRevenus(nouveaux)
-      const anneeMois = Number(mois.slice(0, 4))
-      const avant = moyenneAnnuelle(revenus ?? [], anneeMois)
-      const apres = moyenneAnnuelle(nouveaux, anneeMois) ?? 0
-      setMessage(
-        avant !== null && apres > avant
-          ? `🎉 Bravo, ta moyenne ${anneeMois} grimpe à ${formaterEuros(apres)} par mois ! Continue comme ça 💪`
-          : `${nomDuMois(mois)} : ${formaterEuros(centimes)} enregistré.`,
-      )
+      setMessage(messageRevenu(idMoi, revenus ?? [], nouveaux, mois) ?? `${nomDuMois(mois)} : ${formaterEuros(centimes)} enregistré.`)
     } catch (e) {
       setMessage(messageErreur(e))
     }

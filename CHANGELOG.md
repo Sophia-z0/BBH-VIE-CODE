@@ -3,6 +3,14 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-20 (cérémonie du dimanche, objectifs fêtés, messages de revenus)
+
+- **Cérémonie du dimanche** (`features/podium/Ceremonie.tsx`, `PorteCeremonie.tsx`) : à la première ouverture après le reveal de 18 h, plein écran obligatoire avant tout log. Un tap révèle : étoiles de chacun·e (compteur qui grimpe, 👑), dépenses et 🎁, remise des badges, remise officielle des objectifs atteints, sous une pluie d'émojis. Une fois par appareil. Retour arrière : `CEREMONIE_OBLIGATOIRE = false` dans `lib/options.ts`.
+- **Aperçu** : podium › « 👀 aperçu de la cérémonie du dimanche », sur des données inventées (rien n'est lu ni enregistré).
+- **Objectif atteint** : quand un log fait atteindre un objectif, carte animée « objectif atteint ! », remise officielle à la cérémonie (`features/log/AnnonceObjectif.tsx`).
+- **Badges** : 🐓 le p’tit / la p’tite lève-tôt (3 tâches avant 9 h) ; 👩‍❤️‍👨 à 2 c’est mieux ! (3 tâches à deux, pour les deux) remplace duo de choc ; zéro poussière retiré.
+- **Revenus** : années à partir de 2026 ; messages comparatifs bienveillants à la saisie (même trimestre l'an dernier, « encore un petit effort », année précédente, 6 derniers mois) (`messageRevenu` dans `domain/revenus.ts`).
+
 ## 2026-11-20 (badges de la semaine, objectifs, revenus par année)
 
 - **Badges de la semaine** (`domain/badges.ts`) : 11 badges gagnés au reveal, une fois par semaine au plus : 🌟 maniacobehbz, 👩‍🍳 grand·e chef·fe cuisto, 🍝 p’tit·e qui nourrit, 🎁 bbh kadum, 💝 la générosité incarnée, 🌀 Aspiratorix de behbz !, 🦸 mère / père courage, 🦉 noctambehbz, 🐓 lève-tôt, 🤝 duo de choc, 🧹 zéro poussière. Surprise : un badge jamais gagné n'apparaît nulle part. Podium : badges de la semaine révélée. Stats : palmarès en grille, nombre de fois par personne et 👑. Les anciens badges (première tâche, etc.) disparaissent.

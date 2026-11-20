@@ -8,6 +8,8 @@ import { formaterEuros } from '../../lib/argent'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { marquerRevealOuvert, revealAOuvrir } from './reveal'
 import { usePodium, type Podium } from './usePodium'
+import { Ceremonie } from './Ceremonie'
+import { donneesApercu } from './apercu'
 import { PhraseReport } from '../../components/PhraseReport'
 
 const pourcent = (x: number) => `${Math.round(x * 100)} %`
@@ -19,6 +21,7 @@ export function EcranPodium() {
   const { podium, erreur } = usePodium(membres)
   const [ouvert, setOuvert] = useState(() => !revealAOuvrir())
   const [fete, setFete] = useState(0)
+  const [apercu, setApercu] = useState(false)
 
   if (erreur) return <p className="mt-10 rounded-xl bg-red-100 p-4 text-red-800">{erreur}</p>
   if (!podium) return <p className="mt-20 animate-pulse text-center text-4xl">🏅</p>
@@ -70,6 +73,12 @@ export function EcranPodium() {
       )}
 
       <NouveauxBadges nouveaux={podium.nouveauxBadges} />
+
+      {/* Aperçu de la cérémonie, avec des données inventées : rien n'est lu ni enregistré. */}
+      <button type="button" className="self-center text-sm text-encre/50 underline" onClick={() => setApercu(true)}>
+        👀 aperçu de la cérémonie du dimanche
+      </button>
+      {apercu && <Ceremonie donnees={donneesApercu(membres)} apercu onFin={() => setApercu(false)} />}
     </div>
   )
 }

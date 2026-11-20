@@ -15,6 +15,8 @@ import { EcranStats } from './features/stats/EcranStats'
 import { EcranReglages } from './features/reglages/EcranReglages'
 import { EcranPodium } from './features/podium/EcranPodium'
 import { revealAOuvrir } from './features/podium/reveal'
+import { PorteCeremonie } from './features/podium/PorteCeremonie'
+import { CEREMONIE_OBLIGATOIRE } from './lib/options'
 import { supabaseConfigure } from './lib/supabase'
 
 export function App() {
@@ -61,7 +63,7 @@ function Aiguillage() {
 function AppFoyer() {
   return (
     <HashRouter>
-      <OuvertureReveal />
+      {CEREMONIE_OBLIGATOIRE ? <PorteCeremonie /> : <OuvertureReveal />}
       <header className="flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <span className="text-lg font-extrabold text-orange">BBH VIE</span>
         <CompteARebours />
