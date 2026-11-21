@@ -84,6 +84,8 @@ export interface Depense {
   recurring_id: string | null
   /** Articles retenus quand la dépense vient d'un ticket de caisse (migration 0010). */
   items?: ArticleTicket[] | null
+  /** Log de courses auquel la dépense est reliée (migration 0015), s'il y en a un. */
+  task_log_id?: string | null
 }
 
 /** Ligne d'un ticket de caisse ; montant négatif pour une remise. */

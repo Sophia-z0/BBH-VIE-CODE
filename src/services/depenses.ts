@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase'
 import type { ArticleTicket, Cadeau, Categorie, Depense, DepenseRecurrente } from '../domain/types'
 
 const COLONNES_CATEGORIE = 'id, name, emoji, is_recurring, active, sort_order'
-const COLONNES_DEPENSE = 'id, user_id, category_id, amount_cents, tag, note, spent_at, recurring_id, items, created_at'
+// « * » : task_log_id (migration 0015) est lu s'il existe, sans casser l'app avant.
+const COLONNES_DEPENSE = '*'
 const COLONNES_CADEAU = 'id, user_id, description, estimated_cents, given_at, created_at'
 const COLONNES_RECURRENTE = 'id, user_id, category_id, amount_cents, tag, frequency, day_of_month, month_of_year, active'
 
@@ -42,6 +43,8 @@ export async function ajouterDepense(depense: {
   tag: string
   spent_at: Date
   items?: ArticleTicket[]
+  /** Log de courses à relier (migration 0015). */
+  task_log_id?: string
 }): Promise<Depense> {
   const { data, error } = await supabase
     .from('expenses')
@@ -49,6 +52,13 @@ export async function ajouterDepense(depense: {
     .select(COLONNES_DEPENSE)
     .single()
   if (error) throw error
+  return data
+}
+
+/** Mes dépenses reliées à un log de courses (aucune sans la migration 0015). */
+export async function depensesDuLog(idLog: string): Promise<Depense[]> {
+  const { data, error } = await supabase.from('expenses').select(COLONNES_DEPENSE).eq('task_log_id', idLog)
+  if (error) return []
   return data
 }
 

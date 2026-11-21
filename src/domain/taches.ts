@@ -5,6 +5,11 @@ const PIECES = ['cuisine/salon', 'cuisine', 'salle à manger', 'chambre', 'salle
 /** Autres groupes connus, dans l'ordre d'affichage ; les groupes inconnus viennent après. */
 const AUTRES = ['ménage', 'linge', 'déchets', 'plantes', 'courses']
 
+/** Petites ou grandes courses : après le log, on propose de saisir la dépense (reliée à la tâche). */
+export function estTacheCourses(tache: Tache): boolean {
+  return tache.group_name === 'courses' && /^(petites|grandes) courses/i.test(tache.name)
+}
+
 export type Groupe = [nom: string, taches: Tache[]]
 
 export interface PlansDeTaches {

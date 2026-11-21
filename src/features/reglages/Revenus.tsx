@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { cleMois, messageRevenu, moisDeDate, moisDecale, nomDuMois, type CleMois } from '../../domain/revenus'
 import { PREMIER_MOIS } from '../../domain/calendrier'
+import { montantPret, type NaturePret, type Pret } from '../../domain/prets'
 import type { RevenuMensuel } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
+import { enregistrerPret, listerPrets } from '../../services/prets'
 import { enregistrerCredit, enregistrerRevenu, mesRevenus } from '../../services/revenus'
 
 /** Mes revenus saisis ; null tant que ce n'est pas chargé ou si la table n'existe pas encore (migration 0011). */
@@ -91,6 +93,14 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
   const anneeActuelle = Number(actuel.slice(0, 4))
   const [annee, setAnnee] = useState(anneeActuelle)
   const [message, setMessage] = useState<string | null>(null)
+  const [prets, setPrets] = useState<Pret[]>([])
+  useEffect(() => {
+    let annule = false
+    listerPrets().then((liste) => !annule && setPrets(liste))
+    return () => {
+      annule = true
+    }
+  }, [])
   if (!revenus) return null
 
   const annees = Array.from({ length: anneeActuelle - PREMIERE_ANNEE + 1 }, (_, i) => anneeActuelle - i)
@@ -124,7 +134,22 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
     try {
       const revenu = await enregistrerCredit(idMoi, mois, centimes)
       setRevenus([...(revenus ?? []).filter((r) => !r.month.startsWith(mois)), revenu])
-      setMessage(`${nomDuMois(mois)} : crédit ${centimes === null ? 'effacé' : `de ${formaterEuros(centimes)} enregistré`}.`)
+      setMessage(`${nomDuMois(mois)} : crédimmo ${centimes === null ? 'effacé' : `de ${formaterEuros(centimes)} enregistré`}.`)
+    } catch (e) {
+      setMessage(messageErreur(e))
+    }
+  }
+  /** Ce que je prête ou rembourse à l'autre ce mois-là (on inscrit l'argent qui sort de sa poche). */
+  async function enregistrerLePret(mois: CleMois, nature: NaturePret, texte: string) {
+    const centimes = texte.trim() === '' ? null : texte.trim() === '0' ? 0 : lireMontant(texte)
+    if (texte.trim() !== '' && centimes === null) return setMessage('Montant illisible.')
+    if ((centimes || undefined) === montantPret(idMoi, prets, mois, nature)) return
+    try {
+      const pret = await enregistrerPret(idMoi, mois, nature, centimes)
+      const autres = prets.filter((p) => !(p.from_user === idMoi && p.kind === nature && p.month.startsWith(mois)))
+      setPrets(pret ? [...autres, pret] : autres)
+      const quoi = nature === 'pret' ? 'prêt 2bebz' : 'remboursement'
+      setMessage(`${nomDuMois(mois)} : ${quoi} ${pret ? `de ${formaterEuros(pret.amount_cents)} enregistré` : 'effacé'}.`)
     } catch (e) {
       setMessage(messageErreur(e))
     }
@@ -153,8 +178,13 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
       </div>
       <p className="text-xs text-encre/60">
         Revenu net de chaque mois. La part juste des dépenses suit la moyenne de tes 6 derniers mois ; chaque trimestre, l'écart avec
-        tes revenus réels est reporté sur le trimestre suivant. Le crédit du mois est déduit pour calculer la part du revenu dépensée
+        tes revenus réels est reporté sur le trimestre suivant. Le crédimmo du mois est déduit pour calculer la part du revenu dépensée
         pour le foyer et ton minimum perso.
+      </p>
+      <p className="text-xs text-encre/60">
+        🤝 Prêt 2bebz : on inscrit seulement l'argent qui sort de sa poche, ce que tu prêtes à l'autre ou ce que tu lui rembourses.
+        L'autre n'inscrit rien pour le même mouvement. Le remboursement est déduit de ton revenu, comme le crédimmo ; le prêt, non.
+        Le solde est dans les stats.
       </p>
       <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
         <span className="text-sm">moyenne {annee}</span>
@@ -169,31 +199,48 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
         <li className="flex items-center gap-2 px-4 pt-2 text-xs text-encre/50">
           <span className="flex-1" />
           <span className="w-24 text-right">revenu net</span>
-          <span className="w-20 text-right">dont crédit</span>
+          <span className="w-20 text-right">crédimmo</span>
         </li>
         {liste.map((mois) => (
-          <li key={mois} className="flex items-center gap-2 px-4 py-2 text-sm">
-            <span className="min-w-0 flex-1">{nomDuMois(mois)}</span>
-            <input
-              key={montantDe(mois) ?? 'vide'}
-              inputMode="decimal"
-              aria-label={`revenu net de ${nomDuMois(mois)}`}
-              placeholder="—"
-              defaultValue={enEuros(montantDe(mois))}
-              onBlur={(e) => enregistrer(mois, e.target.value)}
-              className="w-24 rounded-lg bg-creme px-2 py-1 text-right font-semibold outline-none"
-            />
-            {/* Le crédit complète un revenu déjà saisi. */}
-            <input
-              key={`credit-${creditDe(mois) ?? 'vide'}`}
-              inputMode="decimal"
-              aria-label={`crédit de ${nomDuMois(mois)}`}
-              placeholder="—"
-              disabled={montantDe(mois) === undefined}
-              defaultValue={enEuros(creditDe(mois))}
-              onBlur={(e) => enregistrerLeCredit(mois, e.target.value)}
-              className="w-20 rounded-lg bg-creme px-2 py-1 text-right outline-none disabled:opacity-30"
-            />
+          <li key={mois} className="flex flex-col gap-1 px-4 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="min-w-0 flex-1">{nomDuMois(mois)}</span>
+              <input
+                key={montantDe(mois) ?? 'vide'}
+                inputMode="decimal"
+                aria-label={`revenu net de ${nomDuMois(mois)}`}
+                placeholder="—"
+                defaultValue={enEuros(montantDe(mois))}
+                onBlur={(e) => enregistrer(mois, e.target.value)}
+                className="w-24 rounded-lg bg-creme px-2 py-1 text-right font-semibold outline-none"
+              />
+              {/* Le crédit complète un revenu déjà saisi. */}
+              <input
+                key={`credit-${creditDe(mois) ?? 'vide'}`}
+                inputMode="decimal"
+                aria-label={`crédimmo de ${nomDuMois(mois)}`}
+                placeholder="—"
+                disabled={montantDe(mois) === undefined}
+                defaultValue={enEuros(creditDe(mois))}
+                onBlur={(e) => enregistrerLeCredit(mois, e.target.value)}
+                className="w-20 rounded-lg bg-creme px-2 py-1 text-right outline-none disabled:opacity-30"
+              />
+            </div>
+            {/* Prêt 2bebz : indépendant du revenu, saisissable même sans revenu ce mois-là. */}
+            <div className="flex items-center gap-2 text-xs text-encre/60">
+              <span className="min-w-0 flex-1">🤝 à l'autre</span>
+              {(['pret', 'remboursement'] as const).map((nature) => (
+                <input
+                  key={`${nature}-${montantPret(idMoi, prets, mois, nature) ?? 'vide'}`}
+                  inputMode="decimal"
+                  aria-label={`${nature === 'pret' ? 'prêt 2bebz' : 'remboursement'} de ${nomDuMois(mois)}`}
+                  placeholder={nature === 'pret' ? 'prêt 2bebz' : 'remboursé'}
+                  defaultValue={enEuros(montantPret(idMoi, prets, mois, nature))}
+                  onBlur={(e) => enregistrerLePret(mois, nature, e.target.value)}
+                  className={`${nature === 'pret' ? 'w-24' : 'w-20'} rounded-lg bg-creme px-2 py-1 text-right outline-none placeholder:text-encre/30`}
+                />
+              ))}
+            </div>
           </li>
         ))}
       </ul>

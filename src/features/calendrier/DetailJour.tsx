@@ -55,6 +55,9 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
 
   const tache = (id: string) => taches.find((t) => t.id === id)
   const doublons = logsEnDouble(logs)
+  // Une dépense reliée à une course de ce jour s'affiche dans sa carte, pas une deuxième fois en dessous.
+  const idsLogs = new Set(logs.map((l) => l.id))
+  const depensesSeules = depenses.filter((d) => !d.task_log_id || !idsLogs.has(d.task_log_id))
 
   return (
     <div className="fixed inset-0 z-40 flex items-end bg-encre/30" onClick={onFermer}>
@@ -100,65 +103,103 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
           </div>
         )}
 
-        <ul className="mt-4 flex flex-col gap-2">
-          {logs.map((log) => {
-            const personne = personnes.find((p) => p.id === log.user_id)
-            const enDouble = doublons.has(log.id)
-            return (
-              <li key={log.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
-                <span className="text-xl">{tache(log.task_id)?.emoji}</span>
-                <span className="flex-1 font-semibold">
-                  {tache(log.task_id)?.name}
-                  {log.shared && ' 👫'}
-                  {enDouble && <span className="block text-xs font-normal text-encre/50">logué par vous deux, compté une fois</span>}
-                </span>
-                <span
-                  className={`rounded-full px-2 font-bold ${enDouble ? 'line-through opacity-40' : ''}`}
-                  style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}
-                >
-                  ⭐ {formaterEtoiles(etoilesDuLog(log))}
-                </span>
-              </li>
-            )
-          })}
-          {depenses.map((d) => {
-            const personne = personnes.find((p) => p.id === d.user_id)
-            const categorie = categories.find((c) => c.id === d.category_id)
-            return (
-              <li key={d.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
-                <span className="text-xl">{categorie?.emoji}</span>
-                <span className="flex-1 font-semibold">
-                  {categorie?.name}
-                  {d.tag && <span className="font-normal text-encre/60"> · {d.tag}</span>}
-                  <DetailTicket articles={d.items} />
-                </span>
-                <span className="rounded-full px-2 font-bold" style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}>
-                  💖 {formaterEuros(d.amount_cents)}
-                </span>
-              </li>
-            )
-          })}
-          {cadeaux.map((c) => {
-            const personne = personnes.find((p) => p.id === c.user_id)
-            return (
-              <li key={c.id} className="flex items-center gap-3 rounded-2xl bg-rose/10 px-4 py-3 text-sm">
-                <span className="text-xl">🎁</span>
-                <span className="flex-1">
-                  {c.description} de {formaterEuros(c.estimated_cents)} de <span className="font-semibold">{personne?.display_name}</span>
-                </span>
-              </li>
-            )
-          })}
-          {logs.length + depenses.length + cadeaux.length === 0 && (
-            <li className="text-center text-sm text-encre/50">Rien de logué ce jour-là.</li>
-          )}
-          {autreMasque && (
-            <li className="text-center text-sm text-encre/50">
-              🏅 Ce qu'a fait {autre.display_name} sera révélé dimanche à 18h.
-            </li>
-          )}
-        </ul>
+        {logs.length > 0 && (
+          <section className="mt-4 rounded-3xl bg-orange/10 p-2">
+            <h3 className="px-2 pb-2 text-xs font-bold uppercase tracking-wide text-orange">⭐ tâches</h3>
+            <ul className="flex flex-col gap-2">
+              {logs.map((log) => {
+                const personne = personnes.find((p) => p.id === log.user_id)
+                const enDouble = doublons.has(log.id)
+                const liees = depenses.filter((d) => d.task_log_id === log.id)
+                const ligneTache = (
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <span className="text-xl">{tache(log.task_id)?.emoji}</span>
+                    <span className="flex-1 font-semibold">
+                      {tache(log.task_id)?.name}
+                      {log.shared && ' 👫'}
+                      {enDouble && <span className="block text-xs font-normal text-encre/50">logué par vous deux, compté une fois</span>}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 font-bold ${enDouble ? 'line-through opacity-40' : ''}`}
+                      style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}
+                    >
+                      ⭐ {formaterEtoiles(etoilesDuLog(log))}
+                    </span>
+                  </div>
+                )
+                if (liees.length === 0)
+                  return (
+                    <li key={log.id} className="rounded-2xl bg-white text-sm">
+                      {ligneTache}
+                    </li>
+                  )
+                // Course reliée à sa dépense : une seule carte, la tâche en haut, la dépense accrochée dessous.
+                return (
+                  <li key={log.id} className="overflow-hidden rounded-2xl bg-white text-sm ring-2 ring-rose/30">
+                    {ligneTache}
+                    {liees.map((d) => (
+                      <div key={d.id} className="relative border-t border-dashed border-rose/40 bg-rose/10">
+                        <span aria-hidden className="absolute -top-2.5 left-6 rounded-full bg-white px-1 text-xs leading-5">
+                          🔗
+                        </span>
+                        <LigneDepense depense={d} personnes={personnes} categories={categories} />
+                      </div>
+                    ))}
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
+
+        {depensesSeules.length + cadeaux.length > 0 && (
+          <section className="mt-4 rounded-3xl bg-rose/10 p-2">
+            <h3 className="px-2 pb-2 text-xs font-bold uppercase tracking-wide text-rose">💖 dépenses</h3>
+            <ul className="flex flex-col gap-2">
+              {depensesSeules.map((d) => (
+                <li key={d.id} className="rounded-2xl bg-white text-sm">
+                  <LigneDepense depense={d} personnes={personnes} categories={categories} />
+                </li>
+              ))}
+              {cadeaux.map((c) => {
+                const personne = personnes.find((p) => p.id === c.user_id)
+                return (
+                  <li key={c.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
+                    <span className="text-xl">🎁</span>
+                    <span className="flex-1">
+                      {c.description} de {formaterEuros(c.estimated_cents)} de <span className="font-semibold">{personne?.display_name}</span>
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
+
+        {logs.length + depenses.length + cadeaux.length === 0 && <p className="mt-4 text-center text-sm text-encre/50">Rien de logué ce jour-là.</p>}
+        {autreMasque && (
+          <p className="mt-4 text-center text-sm text-encre/50">🏅 Ce qu'a fait {autre.display_name} sera révélé dimanche à 18h.</p>
+        )}
       </section>
+    </div>
+  )
+}
+
+/** Une dépense : emoji et nom de la catégorie, étiquette, ticket dépliable, montant dans la couleur de la personne. */
+function LigneDepense({ depense: d, personnes, categories }: { depense: Depense; personnes: Profil[]; categories: Categorie[] }) {
+  const personne = personnes.find((p) => p.id === d.user_id)
+  const categorie = categories.find((c) => c.id === d.category_id)
+  return (
+    <div className="flex items-center gap-3 px-4 py-3">
+      <span className="text-xl">{categorie?.emoji}</span>
+      <span className="flex-1 font-semibold">
+        {categorie?.name}
+        {d.tag && <span className="font-normal text-encre/60"> · {d.tag}</span>}
+        <DetailTicket articles={d.items} />
+      </span>
+      <span className="rounded-full px-2 font-bold" style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}>
+        💖 {formaterEuros(d.amount_cents)}
+      </span>
     </div>
   )
 }

@@ -20,7 +20,8 @@ import {
 } from '../../domain/stats'
 import { formaterEuros } from '../../lib/argent'
 import { PhraseReport } from '../../components/PhraseReport'
-import { cleMois, contexteRevenus, moyennesRevenu, nomDuMois, partDuMois, reportPour, trimestreDe } from '../../domain/revenus'
+import { soldePrets, type Pret } from '../../domain/prets'
+import { cleMois, contexteRevenus, deductions, moyennesRevenu, nomDuMois, partDuMois, reportPour, trimestreDe } from '../../domain/revenus'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useDonneesStats, type DonneesStats } from './useDonneesStats'
 
@@ -242,6 +243,7 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
           )
         })}
       </div>
+      <PretsDuFoyer prets={donnees.prets} />
       <SousTitre>part du revenu dépensée pour le foyer</SousTitre>
       {mois.length === 0 ? (
         <p className="text-sm text-encre/60">Le premier mois complet s'affichera ici une fois terminé et révélé.</p>
@@ -250,13 +252,13 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
           <div key={cle} className="flex flex-col gap-1">
             <span className="text-sm font-semibold">{nomDuMois(cle)}</span>
             {membres.map((p) => {
-              const r = partDuMois(p, donnees.revenus, donnees.depenses, cle)
+              const r = partDuMois(p, donnees.revenus, donnees.depenses, cle, donnees.prets)
               return (
                 <p key={p.id} className="text-sm">
                   <span style={{ color: p.color }}>●</span> {p.display_name} :{' '}
                   {r.part === null
                     ? `${formaterEuros(r.depense)} (revenu non renseigné)`
-                    : `${pourcent(r.part)} de son revenu${r.reel ? '' : ' estimé'}${r.credit > 0 ? ', crédit déduit' : ''} (${formaterEuros(r.depense)} sur ${formaterEuros(r.revenu ?? 0)})`}
+                    : `${pourcent(r.part)} de son revenu${r.reel ? '' : ' estimé'}${deductions(r) && `, ${deductions(r)}`} (${formaterEuros(r.depense)} sur ${formaterEuros(r.revenu ?? 0)})`}
                   {r.sousMinimum && (
                     <span className="block text-xs text-red-700">
                       {p.id === moi.id ? '⚠️ ce mois-ci, ta part des dépenses du foyer ne t’a pas laissé ton minimum' : '⚠️ sa part du foyer ne lui a pas laissé son minimum perso'}
@@ -269,6 +271,45 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
         ))
       )}
     </Carte>
+  )
+}
+
+/** Prêt 2bebz : qui doit combien à qui, puis l'historique mois par mois (visible par les deux). */
+function PretsDuFoyer({ prets }: { prets: Pret[] }) {
+  const { membres } = useFoyerPret()
+  if (prets.length === 0) return null
+  const solde = soldePrets(membres, prets)
+  const personne = (id: string) => membres.find((m) => m.id === id)
+  return (
+    <div className="flex flex-col gap-1 rounded-2xl bg-creme p-3 text-sm">
+      <span className="font-semibold">
+        🤝 prêt 2bebz :{' '}
+        {solde ? (
+          <>
+            <span style={{ color: solde.doit.color }}>{solde.doit.display_name}</span> doit {formaterEuros(solde.montant)} à{' '}
+            <span style={{ color: solde.a.color }}>{solde.a.display_name}</span>
+          </>
+        ) : (
+          'vous êtes quittes'
+        )}
+      </span>
+      <details className="text-xs text-encre/60">
+        <summary className="cursor-pointer">historique</summary>
+        <ul>
+          {[...prets]
+            .sort((a, b) => b.month.localeCompare(a.month))
+            .map((p) => (
+              <li key={p.id} className="flex justify-between gap-2">
+                <span>
+                  {nomDuMois(p.month.slice(0, 7))} · {personne(p.from_user)?.display_name} {p.kind === 'pret' ? 'a prêté' : 'a remboursé'} à{' '}
+                  {personne(p.to_user)?.display_name}
+                </span>
+                <span>{formaterEuros(p.amount_cents)}</span>
+              </li>
+            ))}
+        </ul>
+      </details>
+    </div>
   )
 }
 

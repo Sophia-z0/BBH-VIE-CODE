@@ -1,6 +1,6 @@
 import { BandeauSemaine } from '../../components/BandeauSemaine'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { AnnonceObjectif, useObjectifAtteint } from './AnnonceObjectif'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
@@ -11,17 +11,21 @@ import { useCollecte } from '../../components/useCollecte'
 import { aujourdhui, jourParis } from '../../domain/calendrier'
 import { encouragementAuHasard } from '../../domain/encouragements'
 import { serieEnCours } from '../../domain/scores'
-import { plansDeTaches, type Groupe } from '../../domain/taches'
+import { estTacheCourses, plansDeTaches, type Groupe } from '../../domain/taches'
 import { etoilesDuLog, formaterEtoiles, totalEtoiles } from '../../domain/etoiles'
-import type { LogTache, Tache } from '../../domain/types'
+import type { Depense, LogTache, Tache } from '../../domain/types'
+import { formaterEuros } from '../../lib/argent'
 import { formaterJourHeure } from '../../lib/dates'
 import { messageErreur } from '../../lib/erreurs'
 import { CARTES_COLLECTEES } from '../../lib/options'
+import { depensesDuLog, supprimerDepense } from '../../services/depenses'
 import { loguerTache, supprimerLog } from '../../services/taches'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useTachesSemaine } from './useTachesSemaine'
 
 const DUREE_ANNULATION_MS = 5000
+/** Après un log de courses : message au dos, retournement et envol vers la pile, puis l'écran dépenses. */
+const DELAI_VERS_DEPENSE_MS = 3300
 
 interface Retour {
   log: LogTache
@@ -45,8 +49,19 @@ export function EcranLog() {
   const [retour, setRetour] = useState<Retour | null>(null)
   const [erreurLog, setErreurLog] = useState<string | null>(null)
   const minuteurRetour = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const navigate = useNavigate()
+  /** Passage vers l'écran dépenses après un log de courses (annulé si le log l'est). */
+  const versDepense = useRef<{ idLog: string; minuteur: ReturnType<typeof setTimeout> } | null>(null)
+  /** Log de courses à annuler qui a une dépense reliée : on demande quoi faire de la dépense. */
+  const [aConfirmer, setAConfirmer] = useState<{ log: LogTache; depenses: Depense[] } | null>(null)
 
-  useEffect(() => () => clearTimeout(minuteurRetour.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(minuteurRetour.current)
+      clearTimeout(versDepense.current?.minuteur)
+    },
+    [],
+  )
   const collecte = useCollecte(() => setRetour(null))
 
   const plans = useMemo(() => plansDeTaches(taches.filter((t) => t.active)), [taches])
@@ -65,6 +80,11 @@ export function EcranLog() {
       else minuteurRetour.current = setTimeout(() => setRetour(null), DUREE_ANNULATION_MS)
       setADeux(false)
       setQuand(quandInitial)
+      if (estTacheCourses(tache)) {
+        clearTimeout(versDepense.current?.minuteur)
+        const adresse = `/depenses?courses=${log.id}${quand ? `&jour=${jourParis(log.done_at)}` : ''}`
+        versDepense.current = { idLog: log.id, minuteur: setTimeout(() => navigate(adresse), DELAI_VERS_DEPENSE_MS) }
+      }
     } catch (e) {
       setErreurLog(messageErreur(e))
     }
@@ -76,8 +96,21 @@ export function EcranLog() {
     else setRetour(null)
   }
 
+  /** Annuler un log ; s'il a une dépense de courses reliée, on demande d'abord quoi en faire. */
   async function annuler(log: LogTache) {
+    if (versDepense.current?.idLog === log.id) {
+      clearTimeout(versDepense.current.minuteur)
+      versDepense.current = null
+    }
+    const liees = await depensesDuLog(log.id)
+    if (liees.length > 0) return setAConfirmer({ log, depenses: liees })
+    await supprimer(log)
+  }
+
+  async function supprimer(log: LogTache, depenses: Depense[] = []) {
+    setAConfirmer(null)
     try {
+      for (const d of depenses) await supprimerDepense(d.id)
       await supprimerLog(log.id)
       collecte.oublier(log.id)
       setMesLogs((logs) => logs.filter((l) => l.id !== log.id))
@@ -161,6 +194,14 @@ export function EcranLog() {
 
       {celebration > 0 && <Celebration cle={celebration} />}
       {objectif.annonce && <AnnonceObjectif objectif={objectif.annonce} onFermer={objectif.fermer} />}
+      {aConfirmer && (
+        <ConfirmationDepenseLiee
+          depenses={aConfirmer.depenses}
+          onSupprimerTout={() => supprimer(aConfirmer.log, aConfirmer.depenses)}
+          onGarderDepense={() => supprimer(aConfirmer.log)}
+          onFermer={() => setAConfirmer(null)}
+        />
+      )}
 
     </div>
   )
@@ -210,6 +251,40 @@ function Plan({
         </div>
       ))}
     </section>
+  )
+}
+
+/** Annuler une course qui a sa dépense : supprimer aussi la dépense, ou la garder (elle n'est plus reliée). */
+function ConfirmationDepenseLiee({
+  depenses,
+  onSupprimerTout,
+  onGarderDepense,
+  onFermer,
+}: {
+  depenses: Depense[]
+  onSupprimerTout: () => void
+  onGarderDepense: () => void
+  onFermer: () => void
+}) {
+  const total = depenses.reduce((t, d) => t + d.amount_cents, 0)
+  const plusieurs = depenses.length > 1
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-encre/30 p-6" onClick={onFermer}>
+      <div role="dialog" aria-modal="true" className="flex w-full max-w-sm flex-col gap-3 rounded-3xl bg-creme p-5" onClick={(e) => e.stopPropagation()}>
+        <p className="font-semibold">
+          Supprimer aussi {plusieurs ? `les ${depenses.length} dépenses liées` : 'la dépense liée'} ({formaterEuros(total)}) ?
+        </p>
+        <button type="button" className="rounded-2xl bg-rose px-4 py-3 text-sm font-semibold text-white active:scale-95" onClick={onSupprimerTout}>
+          oui, supprimer la tâche et {plusieurs ? 'les dépenses' : 'la dépense'}
+        </button>
+        <button type="button" className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold active:scale-95" onClick={onGarderDepense}>
+          non, garder {plusieurs ? 'les dépenses' : 'la dépense'}
+        </button>
+        <button type="button" className="text-sm text-encre/60 underline" onClick={onFermer}>
+          ne rien supprimer
+        </button>
+      </div>
+    </div>
   )
 }
 

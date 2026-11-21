@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { aujourdhui, DEBUT_APP } from '../../domain/calendrier'
 import { semaineDe } from '../../domain/semaine'
+import type { Pret } from '../../domain/prets'
 import type { Cadeau, Categorie, Depense, LogTache, Absence, RevenuMensuel, Tache } from '../../domain/types'
 import { messageErreur } from '../../lib/erreurs'
 import { cadeauxEntre, depensesEntre, listerCategories } from '../../services/depenses'
 import { listerAbsences } from '../../services/presence'
+import { listerPrets } from '../../services/prets'
 import { listerRevenus } from '../../services/revenus'
 import { listerTaches, logsEntre } from '../../services/taches'
 
@@ -18,6 +20,8 @@ export interface DonneesStats {
   taches: Tache[]
   categories: Categorie[]
   revenus: RevenuMensuel[]
+  /** Prêts 2bebz du foyer (migration 0015), visibles par les deux. */
+  prets: Pret[]
   /** Logs de la semaine en cours (pas encore révélée) : seulement les miens comptent, pour mes objectifs. */
   logsEnCours: LogTache[]
 }
@@ -42,9 +46,10 @@ export function useDonneesStats() {
       // Table créée par la migration 0011 : sans elle, aucun revenu mensuel.
       listerRevenus().catch(() => []),
       logsEntre(dernierReveal, new Date()),
+      listerPrets(),
     ])
-      .then(([logs, depenses, cadeaux, absences, taches, categories, revenus, logsEnCours]) => {
-        if (!annule) setDonnees({ dernierReveal, logs, depenses, cadeaux, absences, taches, categories, revenus, logsEnCours })
+      .then(([logs, depenses, cadeaux, absences, taches, categories, revenus, logsEnCours, prets]) => {
+        if (!annule) setDonnees({ dernierReveal, logs, depenses, cadeaux, absences, taches, categories, revenus, logsEnCours, prets })
       })
       .catch((e) => !annule && setErreur(messageErreur(e)))
     return () => {

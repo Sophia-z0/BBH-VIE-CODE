@@ -3,6 +3,15 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-21 (courses reliées à leur dépense, prêt 2bebz)
+
+- **Log › petites ou grandes courses** : après l'envol de la carte vers la pile, l'app ouvre l'écran dépenses avec « 🛒 Et ces courses, ça a coûté combien ? » (montant + catégorie, ou ticket, ou « pas de dépense »). La dépense saisie est reliée à la tâche.
+- **Annuler une course reliée** : une fenêtre demande « Supprimer aussi la dépense liée ? » (oui / non, garder la dépense / ne rien supprimer).
+- **Calendrier › détail du jour** : bloc ⭐ tâches sur fond orange, bloc 💖 dépenses sur fond rose ; une course et sa dépense forment une seule carte, accrochées par 🔗.
+- **Réglages › mes revenus** : « dont crédit » devient « crédimmo » ; sous chaque mois, « 🤝 à l'autre » : prêt 2bebz et remboursé. On inscrit seulement l'argent qui sort de sa poche. Le remboursement est déduit du revenu (part du foyer, minimum perso), le prêt non.
+- **Stats › 💶 le foyer dans nos revenus** : « 🤝 prêt 2bebz : X doit … à Y » (ou « vous êtes quittes »), avec l'historique dépliable, visible par les deux.
+- Migration `0015_courses_liees_et_prets.sql` : colonne `expenses.task_log_id`, nouvelle table `loans` avec ses propres règles d'accès (lecture par le foyer, écriture de ses propres lignes).
+
 ## 2026-11-21 (ticket visible dans le calendrier)
 
 - **Calendrier › détail du jour** : une dépense lue sur un ticket affiche le même menu dépliable « 🧾 n articles » que dans mes entrées de la semaine (articles et montants, total dans la pastille). L'autre le voit aussi, une fois la semaine révélée.

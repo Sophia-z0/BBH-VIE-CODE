@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Celebration } from '../../components/Celebration'
 import { ChoixQuand, instantChoisi, quandDuJour } from '../../components/ChoixQuand'
 import { BandeauSemaine } from '../../components/BandeauSemaine'
@@ -45,7 +45,16 @@ const TICKETS_ACTIFS = true
 export function EcranDepenses() {
   const { moi } = useFoyerPret()
   const { categories, etiquettes, masquerEtiquette, depenses, setDepenses, cadeaux, setCadeaux, chargement, erreur } = useDepensesSemaine(moi.id)
-  const [parametres] = useSearchParams()
+  const [parametres, setParametres] = useSearchParams()
+  const navigate = useNavigate()
+  /** Log de courses qui vient d'être fait (?courses=<id>) : la prochaine dépense lui est reliée. */
+  const logCourses = parametres.get('courses')
+  function oublierCourses() {
+    if (!logCourses) return
+    const suite = new URLSearchParams(parametres)
+    suite.delete('courses')
+    setParametres(suite, { replace: true })
+  }
 
   const [montant, setMontant] = useState(parametres.get('montant') ?? '')
   const [tag, setTag] = useState(parametres.get('tag') ?? '')
@@ -95,7 +104,14 @@ export function EcranDepenses() {
     const centimes = lireMontant(montant)
     if (centimes === null) return aider(categorie.id, '💶', 'Indique d’abord un montant au-dessus')
     try {
-      const depense = await ajouterDepense({ category_id: categorie.id, amount_cents: centimes, tag, spent_at: instantChoisi(quand) })
+      const depense = await ajouterDepense({
+        category_id: categorie.id,
+        amount_cents: centimes,
+        tag,
+        spent_at: instantChoisi(quand),
+        ...(logCourses ? { task_log_id: logCourses } : {}),
+      })
+      oublierCourses()
       setDepenses((liste) => [depense, ...liste])
       feter('depense', {
         cle: categorie.id,
@@ -137,6 +153,7 @@ export function EcranDepenses() {
       tag: lot.magasin,
       spent_at: instant,
       items: lot.articles,
+      ...(logCourses ? { task_log_id: logCourses } : {}),
     })
     setDepenses((liste) => [depense, ...liste])
     lotsDuTicket.current.push({
@@ -156,7 +173,10 @@ export function EcranDepenses() {
     setPhoto(null)
     const [plusGros] = [...lotsDuTicket.current].sort((a, b) => b.montant - a.montant)
     lotsDuTicket.current = []
-    if (plusGros) feter(plusGros.occasion, plusGros.retour)
+    if (plusGros) {
+      oublierCourses()
+      feter(plusGros.occasion, plusGros.retour)
+    }
   }
 
   async function enregistrerCadeau() {
@@ -238,6 +258,15 @@ export function EcranDepenses() {
         }
       />
 
+      {logCourses && (
+        <div className="flex flex-col gap-1 rounded-2xl bg-rose/10 p-4 text-sm">
+          <p className="font-semibold">🛒 Et ces courses, ça a coûté combien ?</p>
+          <p className="text-xs text-encre/60">Tape le montant puis choisis la catégorie, ou scanne le ticket : la dépense sera reliée à ta tâche.</p>
+          <button type="button" className="self-start text-xs text-encre/60 underline" onClick={() => navigate('/')}>
+            pas de dépense
+          </button>
+        </div>
+      )}
       <CarteRevenuManquant idMoi={moi.id} />
       <AlerteMinimum moi={moi} depensesSemaine={depenses} />
 

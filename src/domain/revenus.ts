@@ -1,5 +1,6 @@
 import { jourParis } from './calendrier'
 import { parisVersInstant } from './semaine'
+import { remboursementDuMois, type Pret } from './prets'
 import type { Depense, Profil, RevenuMensuel } from './types'
 
 /**
@@ -245,13 +246,22 @@ export function moyennesRevenu(idPersonne: string, revenus: RevenuMensuel[], mai
   }
 }
 
+/** « crédimmo et remboursement déduits » : ce qui a été retiré du revenu, ou '' si rien. */
+export function deductions(r: Pick<PartDuMois, 'credit' | 'remboursement'>): string {
+  const liste = [r.credit > 0 && 'crédimmo', r.remboursement > 0 && 'remboursement'].filter(Boolean)
+  if (liste.length === 0) return ''
+  return `${liste.join(' et ')} déduit${liste.length > 1 ? 's' : ''}`
+}
+
 export interface PartDuMois {
   personne: Profil
   depense: number
-  /** Revenu réel du mois (crédit déduit), ou à défaut le revenu lissé ; null si aucun. */
+  /** Revenu réel du mois (crédimmo et remboursement déduits), ou à défaut le revenu lissé ; null si aucun. */
   revenu: number | null
-  /** Crédit déduit du revenu ce mois-là (0 si aucun). */
+  /** Crédimmo déduit du revenu ce mois-là (0 si aucun). */
   credit: number
+  /** Remboursement d'un prêt 2bebz à l'autre, déduit du revenu ce mois-là (0 si aucun). */
+  remboursement: number
   /** Revenu réel (true) ou estimé (false). */
   reel: boolean
   /** depense / revenu, ou null sans revenu. */
@@ -261,13 +271,17 @@ export interface PartDuMois {
   sousMinimum: boolean
 }
 
-/** Pour un mois : ce que chacun·e a dépensé pour le foyer, rapporté à son revenu, et le minimum perso. */
-export function partDuMois(personne: Profil, revenus: RevenuMensuel[], depenses: Depense[], mois: CleMois): PartDuMois {
+/**
+ * Pour un mois : ce que chacun·e a dépensé pour le foyer, rapporté à son revenu, et le minimum perso.
+ * Le crédimmo et le remboursement d'un prêt 2bebz sont déduits du revenu (le prêt lui-même, non).
+ */
+export function partDuMois(personne: Profil, revenus: RevenuMensuel[], depenses: Depense[], mois: CleMois, prets: Pret[] = []): PartDuMois {
   const depense = depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === mois).reduce((t, d) => t + d.amount_cents, 0)
   const reel = revenuReel(personne, revenus, mois)
   const credit = revenus.find((x) => x.user_id === personne.id && x.month.startsWith(mois))?.loan_cents ?? 0
   const brut = reel ?? revenuLisse(personne, revenus, mois)
-  const revenu = brut === null ? null : Math.max(0, brut - credit)
+  const remboursement = remboursementDuMois(personne.id, prets, mois)
+  const revenu = brut === null ? null : Math.max(0, brut - credit - remboursement)
   const reste = revenu === null ? null : revenu - depense
   const minimum = personne.personal_minimum_cents ?? null
   return {
@@ -275,6 +289,7 @@ export function partDuMois(personne: Profil, revenus: RevenuMensuel[], depenses:
     depense,
     revenu,
     credit,
+    remboursement,
     reel: reel !== null,
     part: revenu ? depense / revenu : null,
     reste,
