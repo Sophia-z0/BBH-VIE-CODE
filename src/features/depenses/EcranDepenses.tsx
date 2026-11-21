@@ -17,6 +17,7 @@ import { useFoyerPret } from '../foyer/FoyerContext'
 import { CarteRevenuManquant } from '../reglages/Revenus'
 import { AlerteMinimum } from './AlerteMinimum'
 import { PanneauTicket, type LotTicket } from './PanneauTicket'
+import { DetailTicket } from '../../components/DetailTicket'
 import { PucesEtiquettes } from './PucesEtiquettes'
 import { useDepensesSemaine } from './useDepensesSemaine'
 
@@ -353,19 +354,7 @@ export function EcranDepenses() {
                       <span className="font-semibold">{categorie(entree.valeur.category_id)?.name}</span>
                       {entree.valeur.tag && <span className="text-encre/60"> · {entree.valeur.tag}</span>}
                       {entree.valeur.recurring_id && ' 🔁'}
-                      {entree.valeur.items && entree.valeur.items.length > 0 && (
-                        <details className="text-xs text-encre/60">
-                          <summary className="cursor-pointer">🧾 {entree.valeur.items.length} article{entree.valeur.items.length > 1 ? 's' : ''}</summary>
-                          <ul>
-                            {entree.valeur.items.map((article, i) => (
-                              <li key={i} className="flex justify-between gap-2">
-                                <span>{article.libelle}</span>
-                                <span>{formaterEuros(article.montant_cents)}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </details>
-                      )}
+                      <DetailTicket articles={entree.valeur.items} />
                       <br />
                       <span className="text-encre/50">{formaterJourHeure(entree.valeur.spent_at)}</span>
                     </span>

@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-21 (ticket visible dans le calendrier)
+
+- **Calendrier › détail du jour** : une dépense lue sur un ticket affiche le même menu dépliable « 🧾 n articles » que dans mes entrées de la semaine (articles et montants, total dans la pastille). L'autre le voit aussi, une fois la semaine révélée.
+
 ## 2026-11-21 (12 mois glissants complets)
 
 - **Revenus** (réglages) : l'année 2025 s'ouvre dans le menu (les 12 mois), pour compléter les 12 mois glissants dès le lancement et comparer à N-1 (moyennes et messages de félicitations).

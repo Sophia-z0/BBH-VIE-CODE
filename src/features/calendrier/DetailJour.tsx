@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { DetailTicket } from '../../components/DetailTicket'
 import { decomposer, jourLoggable, logsEnDouble, nuitModifiable, type CleJour } from '../../domain/calendrier'
 import { etoilesDuLog, formaterEtoiles } from '../../domain/etoiles'
 import { semaineDe, parisVersInstant } from '../../domain/semaine'
@@ -129,6 +130,7 @@ export function DetailJour({ jour, personnes, logs, depenses, cadeaux, categorie
                 <span className="flex-1 font-semibold">
                   {categorie?.name}
                   {d.tag && <span className="font-normal text-encre/60"> · {d.tag}</span>}
+                  <DetailTicket articles={d.items} />
                 </span>
                 <span className="rounded-full px-2 font-bold" style={{ backgroundColor: personne?.color, color: texteSur(personne?.color) }}>
                   💖 {formaterEuros(d.amount_cents)}
