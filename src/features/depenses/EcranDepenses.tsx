@@ -13,6 +13,7 @@ import { formaterJourHeure } from '../../lib/dates'
 import { messageErreur } from '../../lib/erreurs'
 import { CARTES_COLLECTEES } from '../../lib/options'
 import { ajouterCadeau, ajouterDepense, supprimerCadeau, supprimerDepense } from '../../services/depenses'
+import { changerDateLog } from '../../services/taches'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { CarteRevenuManquant } from '../reglages/Revenus'
 import { AlerteMinimum } from './AlerteMinimum'
@@ -155,6 +156,8 @@ export function EcranDepenses() {
       items: lot.articles,
       ...(logCourses ? { task_log_id: logCourses } : {}),
     })
+    // La course prend la date du ticket, pour rester le même jour que sa dépense dans le calendrier.
+    if (logCourses && lot.instant) await changerDateLog(logCourses, lot.instant).catch(() => {})
     setDepenses((liste) => [depense, ...liste])
     lotsDuTicket.current.push({
       occasion: 'depense',

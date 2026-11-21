@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-21 (course à la date du ticket)
+
+- **Courses + ticket** : quand on scanne le ticket juste après une tâche de courses, la tâche prend la date et l'heure du ticket (si elle est dans la semaine en cours), pour rester sur le même jour que sa dépense dans le calendrier, toujours reliée par 🔗. Les étoiles ne changent pas.
+
 ## 2026-11-21 (courses reliées à leur dépense, prêt 2bebz)
 
 - **Log › petites ou grandes courses** : après l'envol de la carte vers la pile, l'app ouvre l'écran dépenses avec « 🛒 Et ces courses, ça a coûté combien ? » (montant + catégorie, ou ticket, ou « pas de dépense »). La dépense saisie est reliée à la tâche.

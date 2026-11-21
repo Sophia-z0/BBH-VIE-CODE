@@ -40,6 +40,12 @@ export async function loguerTache(taskId: string, faitLe: Date, aDeux: boolean):
   return data
 }
 
+/** Change la date de mon log (dans la semaine en cours seulement ; les étoiles ne bougent pas). */
+export async function changerDateLog(id: string, faitLe: Date) {
+  const { error } = await supabase.from('task_logs').update({ done_at: faitLe.toISOString() }).eq('id', id)
+  if (error) throw error
+}
+
 export async function supprimerLog(id: string) {
   const { error } = await supabase.from('task_logs').delete().eq('id', id)
   if (error) throw error
