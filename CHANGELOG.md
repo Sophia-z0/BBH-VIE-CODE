@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-21 (12 mois glissants complets)
+
+- **Revenus** (réglages) : l'année 2025 s'ouvre dans le menu, avec seulement novembre et décembre, pour compléter les 12 mois glissants dès le lancement.
+- **Stats › 💶 le foyer dans nos revenus** : la moyenne sur 12 mois glissants ne s'affiche qu'une fois les 12 mois terminés tous renseignés ; avant, « — (n/12 mois saisis dans les réglages) ».
+
 ## 2026-11-20 (crédit déduit du revenu, alerte minimum visible par les deux)
 
 - **Revenus** (réglages) : colonne « dont crédit » à côté de chaque mois (une fois le revenu saisi). La part du revenu dépensée pour le foyer (stats) et le minimum perso se calculent sur le revenu moins le crédit. Migration `0014_credit_mensuel.sql`.

@@ -227,7 +227,14 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
               <span className="text-sm font-bold" style={{ color: p.color }}>
                 {p.display_name}
               </span>
-              <span>12 mois glissants : {m.douzeMois === null ? '—' : `${formaterEuros(Math.round(m.douzeMois))} / mois`}</span>
+              <span>
+                12 mois glissants :{' '}
+                {m.douzeMois === null ? (
+                  <span className="text-encre/50">— ({m.douzeRenseignes}/12 mois saisis dans les réglages)</span>
+                ) : (
+                  `${formaterEuros(Math.round(m.douzeMois))} / mois`
+                )}
+              </span>
               <span>
                 année {m.annee} : {m.anneeCivile === null ? '—' : `${formaterEuros(Math.round(m.anneeCivile))} / mois`}
               </span>

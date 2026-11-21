@@ -227,12 +227,19 @@ export function messageRevenu(idPersonne: string, avant: RevenuMensuel[], apres:
 
 // --- Le foyer dans les revenus ----------------------------------------------
 
-/** Revenu moyen sur les 12 derniers mois terminés, et sur l'année civile en cours (mois renseignés). */
+/**
+ * Revenu moyen sur les 12 derniers mois terminés (null tant qu'ils ne sont pas tous renseignés),
+ * et sur l'année civile en cours (mois renseignés).
+ */
 export function moyennesRevenu(idPersonne: string, revenus: RevenuMensuel[], maintenant = new Date()) {
   const actuel = moisDeDate(maintenant)
   const annee = Number(actuel.slice(0, 4))
+  const douze = Array.from({ length: 12 }, (_, i) => moisDecale(actuel, -(i + 1)))
+  const siens = revenusDe(idPersonne, revenus)
+  const douzeRenseignes = douze.filter((m) => siens.has(m)).length
   return {
-    douzeMois: moyenneSur(idPersonne, revenus, Array.from({ length: 12 }, (_, i) => moisDecale(actuel, -(i + 1)))),
+    douzeMois: douzeRenseignes === 12 ? moyenneSur(idPersonne, revenus, douze) : null,
+    douzeRenseignes,
     annee,
     anneeCivile: moyenneSur(idPersonne, revenus, Array.from({ length: 12 }, (_, i) => cleMois(annee, i + 1)).filter((m) => m <= actuel)),
   }

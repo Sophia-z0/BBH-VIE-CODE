@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { cleMois, messageRevenu, moisDeDate, moisDecale, nomDuMois, type CleMois } from '../../domain/revenus'
+import { PREMIER_MOIS } from '../../domain/calendrier'
 import type { RevenuMensuel } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
@@ -68,8 +69,12 @@ export function CarteRevenuManquant({ idMoi }: { idMoi: string }) {
   )
 }
 
-/** Première année proposée dans les réglages (sert au lissage des premiers mois de l'app). */
-const PREMIERE_ANNEE = 2026
+/**
+ * Premier mois proposé dans les réglages : 12 mois avant le premier mois de l'app (novembre 2025),
+ * pour que la moyenne sur 12 mois glissants soit complète dès le premier mois.
+ */
+const PREMIER_MOIS_REVENU = moisDecale(cleMois(PREMIER_MOIS.annee, PREMIER_MOIS.mois), -12)
+const PREMIERE_ANNEE = Number(PREMIER_MOIS_REVENU.slice(0, 4))
 
 /** Moyenne mensuelle des mois renseignés d'une année, ou null si aucun. */
 function moyenneAnnuelle(revenus: RevenuMensuel[], annee: number): number | null {
@@ -91,7 +96,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
 
   const annees = Array.from({ length: anneeActuelle - PREMIERE_ANNEE + 1 }, (_, i) => anneeActuelle - i)
   // Mois de l'année choisie jusqu'au mois en cours, le plus récent en haut.
-  const liste = Array.from({ length: 12 }, (_, i) => cleMois(annee, 12 - i)).filter((m) => m <= actuel)
+  const liste = Array.from({ length: 12 }, (_, i) => cleMois(annee, 12 - i)).filter((m) => m <= actuel && m >= PREMIER_MOIS_REVENU)
   const montantDe = (mois: CleMois) => revenus.find((r) => r.month.startsWith(mois))?.amount_cents
   const moyenne = moyenneAnnuelle(revenus, annee)
   const moyennePrecedente = moyenneAnnuelle(revenus, annee - 1)
