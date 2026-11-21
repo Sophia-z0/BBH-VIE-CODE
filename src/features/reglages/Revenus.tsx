@@ -70,11 +70,10 @@ export function CarteRevenuManquant({ idMoi }: { idMoi: string }) {
 }
 
 /**
- * Premier mois proposé dans les réglages : 12 mois avant le premier mois de l'app (novembre 2025),
- * pour que la moyenne sur 12 mois glissants soit complète dès le premier mois.
+ * Première année proposée dans les réglages : l'année civile qui précède le lancement de l'app (2025),
+ * pour avoir des 12 mois glissants complets dès le départ et une année N-1 de comparaison.
  */
-const PREMIER_MOIS_REVENU = moisDecale(cleMois(PREMIER_MOIS.annee, PREMIER_MOIS.mois), -12)
-const PREMIERE_ANNEE = Number(PREMIER_MOIS_REVENU.slice(0, 4))
+const PREMIERE_ANNEE = PREMIER_MOIS.annee - 1
 
 /** Moyenne mensuelle des mois renseignés d'une année, ou null si aucun. */
 function moyenneAnnuelle(revenus: RevenuMensuel[], annee: number): number | null {
@@ -96,7 +95,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
 
   const annees = Array.from({ length: anneeActuelle - PREMIERE_ANNEE + 1 }, (_, i) => anneeActuelle - i)
   // Mois de l'année choisie jusqu'au mois en cours, le plus récent en haut.
-  const liste = Array.from({ length: 12 }, (_, i) => cleMois(annee, 12 - i)).filter((m) => m <= actuel && m >= PREMIER_MOIS_REVENU)
+  const liste = Array.from({ length: 12 }, (_, i) => cleMois(annee, 12 - i)).filter((m) => m <= actuel)
   const montantDe = (mois: CleMois) => revenus.find((r) => r.month.startsWith(mois))?.amount_cents
   const moyenne = moyenneAnnuelle(revenus, annee)
   const moyennePrecedente = moyenneAnnuelle(revenus, annee - 1)

@@ -5,7 +5,7 @@ sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
 ## 2026-11-21 (12 mois glissants complets)
 
-- **Revenus** (réglages) : l'année 2025 s'ouvre dans le menu, avec seulement novembre et décembre, pour compléter les 12 mois glissants dès le lancement.
+- **Revenus** (réglages) : l'année 2025 s'ouvre dans le menu (les 12 mois), pour compléter les 12 mois glissants dès le lancement et comparer à N-1 (moyennes et messages de félicitations).
 - **Stats › 💶 le foyer dans nos revenus** : la moyenne sur 12 mois glissants ne s'affiche qu'une fois les 12 mois terminés tous renseignés ; avant, « — (n/12 mois saisis dans les réglages) ».
 
 ## 2026-11-20 (crédit déduit du revenu, alerte minimum visible par les deux)
