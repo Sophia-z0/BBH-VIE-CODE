@@ -208,7 +208,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
         {liste.map((mois) => (
           <li key={mois} className="flex flex-col gap-1 px-4 py-2 text-sm">
             <div className="flex items-center gap-2">
-              <span className="min-w-0 flex-1">{nomDuMois(mois)}</span>
+              <span className="min-w-0 flex-1 font-bold">{nomDuMois(mois)}</span>
               <input
                 key={montantDe(mois) ?? 'vide'}
                 inputMode="decimal"
@@ -231,8 +231,8 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
               />
             </div>
             {/* Prêt 2bebz : indépendant du revenu, saisissable même sans revenu ce mois-là ; cases roses, comme les dépenses. */}
-            <div className="mt-1 flex items-center gap-2 border-t border-dashed border-rose/30 pt-2 text-xs text-encre/60">
-              <span className="min-w-0 flex-1">📤 à {autre?.display_name ?? "l'autre"}</span>
+            <div className="mt-1 flex items-center gap-2 border-t border-dashed border-encre/50 pt-2 text-xs text-encre/60">
+              <span className="min-w-0 flex-1">🤝 📤 à {autre?.display_name ?? "l'autre"}</span>
               {(['pret', 'remboursement'] as const).map((nature) => (
                 <input
                   key={`${nature}-${montantPret(idMoi, prets, mois, nature) ?? 'vide'}`}
@@ -248,14 +248,14 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
             {/* Ce que l'autre a inscrit ce mois-là (argent sorti de sa poche) : lecture seule. */}
             {autre && (['pret', 'remboursement'] as const).some((n) => montantPret(autre.id, prets, mois, n) !== undefined) && (
               <div className="flex items-center gap-2 text-xs text-encre/60">
-                <span className="min-w-0 flex-1">📥 de {autre.display_name}</span>
+                <span className="min-w-0 flex-1">🤝 📥 de {autre.display_name}</span>
                 {(['pret', 'remboursement'] as const).map((nature) => {
                   const montant = montantPret(autre.id, prets, mois, nature)
                   return (
                     <span
                       key={nature}
                       aria-label={`${nature === 'pret' ? 'prêt' : 'remboursement'} de ${autre.display_name} en ${nomDuMois(mois)}`}
-                      className={`${nature === 'pret' ? 'w-24' : 'w-20'} rounded-lg bg-encre/5 px-2 py-1 text-right ${montant === undefined ? 'text-encre/30' : 'font-bold text-orange'}`}
+                      className={`${nature === 'pret' ? 'w-24' : 'w-20'} px-2 py-1 text-right ${montant === undefined ? 'text-encre/30' : 'font-bold text-rose'}`}
                     >
                       {montant === undefined ? '—' : formaterEuros(montant)}
                     </span>

@@ -5,7 +5,7 @@ sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
 ## 2026-11-22 (prêts lisibles dans les réglages)
 
-- **Réglages › mes revenus** : sous chaque mois, les prêts sont séparés du revenu et du crédimmo par un trait pointillé, avec des cases roses. « 📤 à [l'autre] » pour ce qui sort de ma poche, « 📥 de [l'autre] » pour ce que l'autre a inscrit : case grisée, mais montant en orange gras.
+- **Réglages › mes revenus** : sous chaque mois, les prêts sont séparés du revenu et du crédimmo par un trait pointillé ; mes cases de prêt sont roses. « 🤝 📤 à [l'autre] » pour ce qui sort de ma poche, « 🤝 📥 de [l'autre] » pour ce que l'autre a inscrit (sans case, montant en rose gras). Mois en gras, trait pointillé gris.
 
 ## 2026-11-22 (prêts de l'autre visibles dans les réglages)
 
