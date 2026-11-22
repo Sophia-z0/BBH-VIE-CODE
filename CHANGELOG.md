@@ -6,7 +6,7 @@ sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 ## 2026-11-22 (réglages à la première personne)
 
 - **Réglages › mon profil** : couleur dans un menu dépliable discret (pastille actuelle, palette au toucher) ; libellés accordés : « mon prénom », « ma couleur », « mon pronom », « mon revenu mensuel habituel », « ma moyenne », « 🔔 mes notifications ». Les explications passent à la première personne ; messages d'encouragement, notifications et dos de cartes restent l'app qui s'adresse à nous.
-- **Réglages › mes revenus** : « 🤝 prêté à [l'autre] » et « 🤝 reçu de [l'autre] » (montants sans €), trait pointillé plus clair.
+- **Réglages › mes revenus** : « 🤝 viré à [l'autre] » (prêt ou remboursement) et « 🤝 reçu de [l'autre] » (montants sans €), trait pointillé plus clair, paragraphe d'explication simplifié.
 
 ## 2026-11-22 (prêts lisibles dans les réglages)
 

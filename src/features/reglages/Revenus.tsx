@@ -97,6 +97,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
   const [prets, setPrets] = useState<Pret[]>([])
   const { membres } = useFoyerPret()
   const autre = membres.find((m) => m.id !== idMoi)
+  const nomAutre = autre?.display_name ?? "l'autre"
   useEffect(() => {
     let annule = false
     listerPrets().then((liste) => !annule && setPrets(liste))
@@ -180,15 +181,24 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
         </select>
       </div>
       <p className="text-xs text-encre/60">
-        Mon revenu net de chaque mois. Ma part juste des dépenses suit la moyenne de mes 6 derniers mois ; chaque trimestre, l'écart
-        avec mes revenus réels est reporté sur le trimestre suivant. Mon crédimmo du mois est déduit pour calculer la part de mon revenu
-        dépensée pour le foyer et mon minimum perso.
+        Ma part juste des dépenses suit la moyenne de mon revenu net sur les 6 derniers mois ; chaque trimestre, l'écart avec mes revenus
+        réels est reporté sur le trimestre suivant.
+        <br />
+        Mon crédimmo du mois est déduit pour calculer la part de mon revenu dépensée pour le foyer et mon minimum perso.
       </p>
       <p className="text-xs text-encre/60">
-        🤝 Prêt 2bebz (cases roses) : j'inscris seulement l'argent qui sort de ma poche, ce que je prête à {autre?.display_name ?? "l'autre"} ou
-        ce que je lui rembourse ; {autre?.display_name ?? "l'autre"} n'inscrit rien pour le même mouvement. Mon remboursement est déduit de mon
-        revenu, comme le crédimmo ; le prêt, non.
-        {autre && ` La ligne « reçu de ${autre.display_name} » est en lecture seule : c'est ${autre.display_name} qui inscrit ce qu'${autre.gender ?? 'iel'} me prête ou me rembourse.`}{' '}
+        🤝 Prêt 2bebz (cases roses) : j'inscris seulement l'argent qui sort de ma poche, ce que je prête à {nomAutre} ou ce que je lui
+        rembourse.
+        <br />
+        Mon remboursement est déduit de mon revenu, comme le crédimmo ; le prêt, non.
+        {autre && (
+          <>
+            <br />
+            La ligne « reçu de {autre.display_name} » est en lecture seule : c'est {autre.display_name} qui inscrit ce qu'{autre.gender ?? 'iel'} me
+            prête ou me rembourse.
+          </>
+        )}
+        <br />
         Le solde est dans les stats.
       </p>
       <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
@@ -233,7 +243,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
             </div>
             {/* Prêt 2bebz : indépendant du revenu, saisissable même sans revenu ce mois-là ; cases roses, comme les dépenses. */}
             <div className="mt-1 flex items-center gap-2 border-t border-dashed border-encre/20 pt-2 text-xs text-encre/60">
-              <span className="min-w-0 flex-1">🤝 prêté à {autre?.display_name ?? "l'autre"}</span>
+              <span className="min-w-0 flex-1">🤝 viré à {nomAutre}</span>
               {(['pret', 'remboursement'] as const).map((nature) => (
                 <input
                   key={`${nature}-${montantPret(idMoi, prets, mois, nature) ?? 'vide'}`}
