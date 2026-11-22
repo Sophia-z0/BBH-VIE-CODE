@@ -180,18 +180,19 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
         </select>
       </div>
       <p className="text-xs text-encre/60">
-        Revenu net de chaque mois. La part juste des dépenses suit la moyenne de tes 6 derniers mois ; chaque trimestre, l'écart avec
-        tes revenus réels est reporté sur le trimestre suivant. Le crédimmo du mois est déduit pour calculer la part du revenu dépensée
-        pour le foyer et ton minimum perso.
+        Mon revenu net de chaque mois. Ma part juste des dépenses suit la moyenne de mes 6 derniers mois ; chaque trimestre, l'écart
+        avec mes revenus réels est reporté sur le trimestre suivant. Mon crédimmo du mois est déduit pour calculer la part de mon revenu
+        dépensée pour le foyer et mon minimum perso.
       </p>
       <p className="text-xs text-encre/60">
-        🤝 Prêt 2bebz (cases roses) : on inscrit seulement l'argent qui sort de sa poche, ce que tu prêtes à l'autre ou ce que tu lui rembourses.
-        L'autre n'inscrit rien pour le même mouvement. Le remboursement est déduit de ton revenu, comme le crédimmo ; le prêt, non.
-        {autre && ` La ligne « 📥 de ${autre.display_name} » est en lecture seule : c'est ${autre.display_name} qui inscrit ce qu'${autre.gender ?? 'iel'} te prête ou te rembourse.`}{' '}
+        🤝 Prêt 2bebz (cases roses) : j'inscris seulement l'argent qui sort de ma poche, ce que je prête à {autre?.display_name ?? "l'autre"} ou
+        ce que je lui rembourse ; {autre?.display_name ?? "l'autre"} n'inscrit rien pour le même mouvement. Mon remboursement est déduit de mon
+        revenu, comme le crédimmo ; le prêt, non.
+        {autre && ` La ligne « reçu de ${autre.display_name} » est en lecture seule : c'est ${autre.display_name} qui inscrit ce qu'${autre.gender ?? 'iel'} me prête ou me rembourse.`}{' '}
         Le solde est dans les stats.
       </p>
       <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
-        <span className="text-sm">moyenne {annee}</span>
+        <span className="text-sm">ma moyenne {annee}</span>
         <span className="text-right">
           <span className="text-lg font-bold">{moyenne === null ? '—' : `${formaterEuros(moyenne)} / mois`}</span>
           {moyenne !== null && moyennePrecedente !== null && moyenne > moyennePrecedente && (
@@ -231,8 +232,8 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
               />
             </div>
             {/* Prêt 2bebz : indépendant du revenu, saisissable même sans revenu ce mois-là ; cases roses, comme les dépenses. */}
-            <div className="mt-1 flex items-center gap-2 border-t border-dashed border-encre/50 pt-2 text-xs text-encre/60">
-              <span className="min-w-0 flex-1">🤝 📤 à {autre?.display_name ?? "l'autre"}</span>
+            <div className="mt-1 flex items-center gap-2 border-t border-dashed border-encre/20 pt-2 text-xs text-encre/60">
+              <span className="min-w-0 flex-1">🤝 prêté à {autre?.display_name ?? "l'autre"}</span>
               {(['pret', 'remboursement'] as const).map((nature) => (
                 <input
                   key={`${nature}-${montantPret(idMoi, prets, mois, nature) ?? 'vide'}`}
@@ -248,7 +249,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
             {/* Ce que l'autre a inscrit ce mois-là (argent sorti de sa poche) : lecture seule. */}
             {autre && (['pret', 'remboursement'] as const).some((n) => montantPret(autre.id, prets, mois, n) !== undefined) && (
               <div className="flex items-center gap-2 text-xs text-encre/60">
-                <span className="min-w-0 flex-1">🤝 📥 de {autre.display_name}</span>
+                <span className="min-w-0 flex-1">🤝 reçu de {autre.display_name}</span>
                 {(['pret', 'remboursement'] as const).map((nature) => {
                   const montant = montantPret(autre.id, prets, mois, nature)
                   return (
@@ -257,7 +258,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
                       aria-label={`${nature === 'pret' ? 'prêt' : 'remboursement'} de ${autre.display_name} en ${nomDuMois(mois)}`}
                       className={`${nature === 'pret' ? 'w-24' : 'w-20'} px-2 py-1 text-right ${montant === undefined ? 'text-encre/30' : 'font-bold text-rose'}`}
                     >
-                      {montant === undefined ? '—' : formaterEuros(montant)}
+                      {montant === undefined ? '—' : enEuros(montant)}
                     </span>
                   )
                 })}

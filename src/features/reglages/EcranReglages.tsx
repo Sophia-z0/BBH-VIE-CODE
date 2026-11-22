@@ -50,10 +50,12 @@ export function EcranReglages() {
     <div className="flex flex-col gap-8 pt-4">
       <form onSubmit={enregistrer} className="flex flex-col gap-5">
         <h1 className="text-2xl font-bold">mon profil</h1>
-        <ChampTexte libelle="prénom" required maxLength={40} value={prenom} onChange={(e) => setPrenom(e.target.value)} />
-        <ChoixCouleur valeur={couleur} onChange={setCouleur} />
+        <ChampTexte libelle="mon prénom" required maxLength={40} value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+        <ChoixCouleur valeur={couleur} onChange={setCouleur} libelle="ma couleur" compact />
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">pour accorder mes badges</span>
+          <span className="text-sm font-semibold">
+            mon pronom <span className="font-normal text-encre/50">· pour accorder mes badges</span>
+          </span>
           <div className="flex flex-wrap gap-2">
             {(
               [
@@ -69,10 +71,10 @@ export function EcranReglages() {
           </div>
         </div>
         <ChampTexte
-          libelle="revenu mensuel habituel (€, optionnel)"
+          libelle="mon revenu mensuel habituel (€, optionnel)"
           inputMode="decimal"
           pattern="[0-9]+([.,][0-9]{1,2})?"
-          placeholder="sert tant qu'aucun mois n'est saisi plus bas"
+          placeholder="sert tant que je n'ai saisi aucun mois plus bas"
           value={revenu}
           onChange={(e) => setRevenu(e.target.value)}
         />
@@ -85,7 +87,7 @@ export function EcranReglages() {
           onChange={(e) => setMinimum(e.target.value)}
         />
         <p className="-mt-3 text-xs text-encre/50">
-          {autre ? autre.display_name : "L'autre"} verra seulement quand ta part du foyer ne te laisse pas ce minimum, jamais le montant.
+          {autre ? autre.display_name : "L'autre"} verra seulement quand ma part du foyer ne me laisse pas ce minimum, jamais le montant.
         </p>
         {message && <p className="text-sm">{message}</p>}
         <Bouton type="submit">enregistrer</Bouton>
@@ -104,7 +106,7 @@ export function EcranReglages() {
           </p>
         ) : (
           <div className="rounded-2xl bg-white p-4 text-center">
-            <p className="text-sm text-encre/70">Code à donner à ton ou ta partenaire :</p>
+            <p className="text-sm text-encre/70">Code à donner à mon ou ma partenaire :</p>
             <p className="mt-1 font-mono text-3xl font-bold tracking-widest text-orange">{foyer.invite_code}</p>
           </div>
         )}

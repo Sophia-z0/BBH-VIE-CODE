@@ -3,6 +3,11 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (réglages à la première personne)
+
+- **Réglages › mon profil** : couleur dans un menu dépliable discret (pastille actuelle, palette au toucher) ; libellés accordés : « mon prénom », « ma couleur », « mon pronom », « mon revenu mensuel habituel », « ma moyenne », « 🔔 mes notifications ». Les explications passent à la première personne ; messages d'encouragement, notifications et dos de cartes restent l'app qui s'adresse à nous.
+- **Réglages › mes revenus** : « 🤝 prêté à [l'autre] » et « 🤝 reçu de [l'autre] » (montants sans €), trait pointillé plus clair.
+
 ## 2026-11-22 (prêts lisibles dans les réglages)
 
 - **Réglages › mes revenus** : sous chaque mois, les prêts sont séparés du revenu et du crédimmo par un trait pointillé ; mes cases de prêt sont roses. « 🤝 📤 à [l'autre] » pour ce qui sort de ma poche, « 🤝 📥 de [l'autre] » pour ce que l'autre a inscrit (sans case, montant en rose gras). Mois en gras, trait pointillé gris.

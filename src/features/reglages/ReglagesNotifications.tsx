@@ -56,7 +56,7 @@ export function ReglagesNotifications({ moi }: { moi: Profil }) {
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xl font-bold">🔔 notifications</h2>
+      <h2 className="text-xl font-bold">🔔 mes notifications</h2>
 
       {etat && MESSAGES_ETAT[etat] ? (
         <p className="rounded-xl bg-orange/10 p-3 text-sm">{MESSAGES_ETAT[etat]}</p>
