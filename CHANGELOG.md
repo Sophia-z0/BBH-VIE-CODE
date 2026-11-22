@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (revenu de référence)
+
+- **Stats › 💶 le foyer dans nos revenus** : sous « année » et « 12 mois glissants », le **revenu de référence** de chacun·e (moyenne des 6 derniers mois saisis, hors mois en cours), celui de la part juste des dépenses et du conseil de remboursement, qui l'affiche sous ce nom.
+
 ## 2026-11-22 (conseil : même revenu que la part juste)
 
 - **Stats › prêt 2bebz › conseil** : le revenu retenu est celui de la part juste des dépenses (moyenne des 6 derniers mois saisis avant le mois en cours) ; le détail affiche la période, par exemple « mon revenu net moyen (mai 2026 → octobre 2026) ».

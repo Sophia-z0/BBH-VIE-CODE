@@ -240,6 +240,11 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
               <span>
                 année {m.annee} : {m.anneeCivile === null ? '—' : `${formaterEuros(Math.round(m.anneeCivile))} / mois`}
               </span>
+              {/* Revenu de référence : celui de la part juste des dépenses et du conseil de remboursement. */}
+              <span>
+                revenu de référence : {m.reference === null ? '—' : `${formaterEuros(Math.round(m.reference))} / mois`}
+                <span className="block text-encre/50">6 derniers mois saisis, hors mois en cours</span>
+              </span>
             </div>
           )
         })}
@@ -353,7 +358,7 @@ function ConseilRemboursement({ donnees, doit, solde, moiQuiDois }: { donnees: D
           {moiQuiDois && (
             <ul className="mt-1 rounded-xl bg-white/60 p-2">
               <li className="flex justify-between"><span>
-                  mon revenu net moyen ({conseil.debut === conseil.fin ? nomDuMois(conseil.debut) : `${nomDuMois(conseil.debut)} → ${nomDuMois(conseil.fin)}`})
+                  mon revenu de référence ({conseil.debut === conseil.fin ? nomDuMois(conseil.debut) : `${nomDuMois(conseil.debut)} → ${nomDuMois(conseil.fin)}`})
                 </span><span>{formaterEuros(Math.round(conseil.revenu))}</span></li>
               <li className="flex justify-between"><span>− crédimmo (mois renseignés)</span><span>{formaterEuros(Math.round(conseil.credimmo))}</span></li>
               <li className="flex justify-between"><span>− mes dépenses pour le foyer{conseil.foyerEstime ? ' (estimées, pas encore de données)' : ''}</span><span>{formaterEuros(Math.round(conseil.foyer))}</span></li>

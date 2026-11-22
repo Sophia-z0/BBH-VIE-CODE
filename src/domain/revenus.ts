@@ -241,6 +241,8 @@ export function moyennesRevenu(idPersonne: string, revenus: RevenuMensuel[], mai
   return {
     douzeMois: douzeRenseignes === 12 ? moyenneSur(idPersonne, revenus, douze) : null,
     douzeRenseignes,
+    /** Revenu de référence : moyenne des 6 derniers mois saisis avant le mois en cours (part juste, conseil de remboursement). */
+    reference: moyenneSur(idPersonne, revenus, [...revenusDe(idPersonne, revenus).keys()].filter((m) => m < actuel).sort((a, b) => b.localeCompare(a)).slice(0, MOIS_LISSAGE)),
     annee,
     anneeCivile: moyenneSur(idPersonne, revenus, Array.from({ length: 12 }, (_, i) => cleMois(annee, i + 1)).filter((m) => m <= actuel)),
   }
