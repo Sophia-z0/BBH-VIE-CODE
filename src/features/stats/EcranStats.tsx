@@ -352,7 +352,9 @@ function ConseilRemboursement({ donnees, doit, solde, moiQuiDois }: { donnees: D
           </ul>
           {moiQuiDois && (
             <ul className="mt-1 rounded-xl bg-white/60 p-2">
-              <li className="flex justify-between"><span>mon revenu net</span><span>{formaterEuros(Math.round(conseil.revenu))}</span></li>
+              <li className="flex justify-between"><span>
+                  mon revenu net moyen ({conseil.debut === conseil.fin ? nomDuMois(conseil.debut) : `${nomDuMois(conseil.debut)} → ${nomDuMois(conseil.fin)}`})
+                </span><span>{formaterEuros(Math.round(conseil.revenu))}</span></li>
               <li className="flex justify-between"><span>− crédimmo (mois renseignés)</span><span>{formaterEuros(Math.round(conseil.credimmo))}</span></li>
               <li className="flex justify-between"><span>− mes dépenses pour le foyer{conseil.foyerEstime ? ' (estimées, pas encore de données)' : ''}</span><span>{formaterEuros(Math.round(conseil.foyer))}</span></li>
               <li className="flex justify-between"><span>− mon minimum perso{conseil.minimum === 0 ? ' (non renseigné)' : ''}</span><span>{formaterEuros(conseil.minimum)}</span></li>
@@ -360,7 +362,7 @@ function ConseilRemboursement({ donnees, doit, solde, moiQuiDois }: { donnees: D
             </ul>
           )}
           <p>
-            Calculé sur {ses} {conseil.nbMois < 6 ? `${conseil.nbMois} derniers mois seulement` : '6 derniers mois'} : revenu, crédimmo et part du foyer. En respectant{' '}
+            Calculé sur {ses} {conseil.nbMois < 6 ? `${conseil.nbMois} derniers mois saisis seulement` : '6 derniers mois saisis'} : revenu, crédimmo et part du foyer. En respectant{' '}
             {son} minimum perso. À ajuster ensemble 💬
           </p>
         </div>

@@ -1,8 +1,5 @@
-import { moisDeDate, moisDecale, type CleMois } from './revenus'
+import { MOIS_LISSAGE, moisDeDate, type CleMois } from './revenus'
 import type { Depense, Profil, RevenuMensuel } from './types'
-
-/** Fenêtre du conseil : les 6 derniers mois terminés. */
-const MOIS_CONSEIL = 6
 
 /** Part du foyer retenue tant qu'aucun mois de dépenses n'est disponible : 200 € (≈ 50 € de courses par semaine). */
 const FOYER_ESTIME = 20000
@@ -28,8 +25,11 @@ export type ConseilPret =
   | { type: 'sans-revenu' }
   | {
       type: 'calcul'
-      /** Mois de la fenêtre où le revenu est saisi (moins de 6 : on le dit). */
+      /** Nombre de mois saisis retenus (moins de 6 : on le dit). */
       nbMois: number
+      /** Premier et dernier mois retenus, pour afficher la période. */
+      debut: CleMois
+      fin: CleMois
       revenu: number
       credimmo: number
       foyer: number
@@ -46,7 +46,8 @@ const aLaDizaine = (centimes: number) => Math.max(1000, Math.round(centimes / 10
 
 /**
  * Conseil de remboursement d'un prêt 2bebz pour la personne qui doit `solde` : moyennes de ses
- * 6 derniers mois terminés (revenu saisi, ses dépenses pour le foyer ; crédimmo sur les mois renseignés), moins son minimum perso,
+ * 6 derniers mois saisis avant le mois en cours, comme la part juste (revenu, ses dépenses pour le foyer ;
+ * crédimmo sur les mois renseignés), moins son minimum perso,
  * puis 10 / 20 / 35 % de cette marge chaque mois.
  */
 export function conseilRemboursement(
@@ -56,21 +57,23 @@ export function conseilRemboursement(
   depenses: Depense[],
   maintenant = new Date(),
 ): ConseilPret {
+  // Mêmes mois que la part juste des dépenses (revenuLisse) : les 6 derniers mois saisis avant le mois en cours.
   const actuel = moisDeDate(maintenant)
-  const fenetre: CleMois[] = Array.from({ length: MOIS_CONSEIL }, (_, i) => moisDecale(actuel, -(i + 1)))
   const siens = new Map(revenus.filter((r) => r.user_id === personne.id).map((r) => [r.month.slice(0, 7), r]))
-  const mois = fenetre.filter((m) => siens.has(m))
+  const mois: CleMois[] = [...siens.keys()]
+    .filter((m) => m < actuel)
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, MOIS_LISSAGE)
   if (mois.length === 0) return { type: 'sans-revenu' }
-
   const moyenne = (valeur: (m: CleMois) => number) => mois.reduce((t, m) => t + valeur(m), 0) / mois.length
   const revenu = moyenne((m) => siens.get(m)!.amount_cents)
   // Crédimmo : charge mensuelle réelle, moyenne des seuls mois où il est renseigné. Un mois sans crédimmo
   // (souvent parce qu'un prêt 2bebz l'a couvert) ne compte pas comme un mois sans crédit.
-  const credits = fenetre.map((m) => siens.get(m)?.loan_cents ?? 0).filter((c) => c > 0)
+  const credits = mois.map((m) => siens.get(m)?.loan_cents ?? 0).filter((c) => c > 0)
   const credimmo = credits.length === 0 ? 0 : credits.reduce((t, c) => t + c, 0) / credits.length
   // Part du foyer : moyenne des mois où des dépenses sont saisies (les mois d'avant l'app ne comptent pas pour 0) ;
   // sans aucune donnée, une estimation prudente (courses : environ 50 € par semaine).
-  const parMois = fenetre
+  const parMois = mois
     .map((m) => depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === m).reduce((t, d) => t + d.amount_cents, 0))
     .filter((total) => total > 0)
   const foyerEstime = parMois.length === 0
@@ -85,5 +88,5 @@ export function conseilRemboursement(
           const mensualite = Math.min(aLaDizaine(marge * r.part), solde)
           return { ...r, mensualite, duree: Math.ceil(solde / mensualite) }
         })
-  return { type: 'calcul', nbMois: mois.length, revenu, credimmo, foyer, foyerEstime, minimum, marge, rythmes }
+  return { type: 'calcul', nbMois: mois.length, debut: mois[mois.length - 1], fin: mois[0], revenu, credimmo, foyer, foyerEstime, minimum, marge, rythmes }
 }

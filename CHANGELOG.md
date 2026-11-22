@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (conseil : même revenu que la part juste)
+
+- **Stats › prêt 2bebz › conseil** : le revenu retenu est celui de la part juste des dépenses (moyenne des 6 derniers mois saisis avant le mois en cours) ; le détail affiche la période, par exemple « mon revenu net moyen (mai 2026 → octobre 2026) ».
+
 ## 2026-11-22 (conseil : crédimmo réel, part du foyer estimée)
 
 - **Stats › prêt 2bebz › conseil** : le crédimmo retenu est la moyenne des seuls mois où il est renseigné ; un mois sans crédimmo (couvert par un prêt 2bebz) ne fait plus baisser la charge et ne gonfle plus la marge.
