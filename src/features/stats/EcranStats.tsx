@@ -354,7 +354,7 @@ function ConseilRemboursement({ donnees, doit, solde, moiQuiDois }: { donnees: D
             <ul className="mt-1 rounded-xl bg-white/60 p-2">
               <li className="flex justify-between"><span>mon revenu net</span><span>{formaterEuros(Math.round(conseil.revenu))}</span></li>
               <li className="flex justify-between"><span>− crédimmo (mois renseignés)</span><span>{formaterEuros(Math.round(conseil.credimmo))}</span></li>
-              <li className="flex justify-between"><span>− mes dépenses pour le foyer</span><span>{formaterEuros(Math.round(conseil.foyer))}</span></li>
+              <li className="flex justify-between"><span>− mes dépenses pour le foyer{conseil.foyerEstime ? ' (estimées, pas encore de données)' : ''}</span><span>{formaterEuros(Math.round(conseil.foyer))}</span></li>
               <li className="flex justify-between"><span>− mon minimum perso{conseil.minimum === 0 ? ' (non renseigné)' : ''}</span><span>{formaterEuros(conseil.minimum)}</span></li>
               <li className="flex justify-between font-semibold"><span>= ma marge par mois</span><span>{formaterEuros(Math.round(conseil.marge))}</span></li>
             </ul>

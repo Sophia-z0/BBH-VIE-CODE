@@ -3,9 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
-## 2026-11-22 (conseil : crédimmo réel)
+## 2026-11-22 (conseil : crédimmo réel, part du foyer estimée)
 
 - **Stats › prêt 2bebz › conseil** : le crédimmo retenu est la moyenne des seuls mois où il est renseigné ; un mois sans crédimmo (couvert par un prêt 2bebz) ne fait plus baisser la charge et ne gonfle plus la marge.
+- **Même conseil, part du foyer** : moyenne des seuls mois où des dépenses sont saisies ; sans aucune donnée, estimée à 200 € par mois (≈ 50 € de courses par semaine), avec la mention « estimées ».
 
 ## 2026-11-22 (conseil de remboursement du prêt 2bebz)
 

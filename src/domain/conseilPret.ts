@@ -4,6 +4,9 @@ import type { Depense, Profil, RevenuMensuel } from './types'
 /** Fenêtre du conseil : les 6 derniers mois terminés. */
 const MOIS_CONSEIL = 6
 
+/** Part du foyer retenue tant qu'aucun mois de dépenses n'est disponible : 200 € (≈ 50 € de courses par semaine). */
+const FOYER_ESTIME = 20000
+
 /** Trois rythmes de remboursement, en part de la marge mensuelle. */
 const RYTHMES = [
   { cle: 'tranquille', emoji: '🐢', part: 0.1 },
@@ -30,6 +33,8 @@ export type ConseilPret =
       revenu: number
       credimmo: number
       foyer: number
+      /** true : aucune dépense saisie sur la fenêtre, part du foyer estimée à 200 €. */
+      foyerEstime: boolean
       minimum: number
       /** revenu − crédimmo − part du foyer − minimum perso, par mois. */
       marge: number
@@ -63,9 +68,13 @@ export function conseilRemboursement(
   // (souvent parce qu'un prêt 2bebz l'a couvert) ne compte pas comme un mois sans crédit.
   const credits = fenetre.map((m) => siens.get(m)?.loan_cents ?? 0).filter((c) => c > 0)
   const credimmo = credits.length === 0 ? 0 : credits.reduce((t, c) => t + c, 0) / credits.length
-  const foyer = moyenne((m) =>
-    depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === m).reduce((t, d) => t + d.amount_cents, 0),
-  )
+  // Part du foyer : moyenne des mois où des dépenses sont saisies (les mois d'avant l'app ne comptent pas pour 0) ;
+  // sans aucune donnée, une estimation prudente (courses : environ 50 € par semaine).
+  const parMois = fenetre
+    .map((m) => depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === m).reduce((t, d) => t + d.amount_cents, 0))
+    .filter((total) => total > 0)
+  const foyerEstime = parMois.length === 0
+  const foyer = foyerEstime ? FOYER_ESTIME : parMois.reduce((t, v) => t + v, 0) / parMois.length
   const minimum = personne.personal_minimum_cents ?? 0
   const marge = revenu - credimmo - foyer - minimum
 
@@ -76,5 +85,5 @@ export function conseilRemboursement(
           const mensualite = Math.min(aLaDizaine(marge * r.part), solde)
           return { ...r, mensualite, duree: Math.ceil(solde / mensualite) }
         })
-  return { type: 'calcul', nbMois: mois.length, revenu, credimmo, foyer, minimum, marge, rythmes }
+  return { type: 'calcul', nbMois: mois.length, revenu, credimmo, foyer, foyerEstime, minimum, marge, rythmes }
 }
