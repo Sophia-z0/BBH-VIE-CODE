@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (conseil : crédimmo réel)
+
+- **Stats › prêt 2bebz › conseil** : le crédimmo retenu est la moyenne des seuls mois où il est renseigné ; un mois sans crédimmo (couvert par un prêt 2bebz) ne fait plus baisser la charge et ne gonfle plus la marge.
+
 ## 2026-11-22 (conseil de remboursement du prêt 2bebz)
 
 - **Stats › 🤝 prêt 2bebz › conseil** (sous l'historique) : trois rythmes de virement mensuel pour solder le prêt (🐢 tranquille, 🤝 équilibré, 🚀 rapide : 10 / 20 / 35 % de la marge, arrondis à la dizaine), avec la durée. Marge = moyennes des 6 derniers mois terminés (revenu net − crédimmo − dépenses pour le foyer) − minimum perso. Les deux voient les rythmes ; seule la personne qui doit voit le détail et les pourcentages (ils révéleraient son minimum perso).

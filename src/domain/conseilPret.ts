@@ -41,7 +41,7 @@ const aLaDizaine = (centimes: number) => Math.max(1000, Math.round(centimes / 10
 
 /**
  * Conseil de remboursement d'un prêt 2bebz pour la personne qui doit `solde` : moyennes de ses
- * 6 derniers mois terminés (revenu saisi, crédimmo, ses dépenses pour le foyer), moins son minimum perso,
+ * 6 derniers mois terminés (revenu saisi, ses dépenses pour le foyer ; crédimmo sur les mois renseignés), moins son minimum perso,
  * puis 10 / 20 / 35 % de cette marge chaque mois.
  */
 export function conseilRemboursement(
@@ -59,7 +59,10 @@ export function conseilRemboursement(
 
   const moyenne = (valeur: (m: CleMois) => number) => mois.reduce((t, m) => t + valeur(m), 0) / mois.length
   const revenu = moyenne((m) => siens.get(m)!.amount_cents)
-  const credimmo = moyenne((m) => siens.get(m)!.loan_cents ?? 0)
+  // Crédimmo : charge mensuelle réelle, moyenne des seuls mois où il est renseigné. Un mois sans crédimmo
+  // (souvent parce qu'un prêt 2bebz l'a couvert) ne compte pas comme un mois sans crédit.
+  const credits = fenetre.map((m) => siens.get(m)?.loan_cents ?? 0).filter((c) => c > 0)
+  const credimmo = credits.length === 0 ? 0 : credits.reduce((t, c) => t + c, 0) / credits.length
   const foyer = moyenne((m) =>
     depenses.filter((d) => d.user_id === personne.id && moisDeDate(d.spent_at) === m).reduce((t, d) => t + d.amount_cents, 0),
   )
