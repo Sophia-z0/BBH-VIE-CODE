@@ -242,7 +242,8 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
               </span>
               {/* Revenu de référence : celui de la part juste des dépenses et du conseil de remboursement. */}
               <span>
-                revenu de référence : {m.reference === null ? '—' : `${formaterEuros(Math.round(m.reference))} / mois`}
+                <span className="font-bold">revenu de référence</span> :{' '}
+                <span className="font-bold">{m.reference === null ? '—' : `${formaterEuros(Math.round(m.reference))} / mois`}</span>
                 <span className="block text-encre/50">6 derniers mois saisis, hors mois en cours</span>
               </span>
             </div>
@@ -358,8 +359,8 @@ function ConseilRemboursement({ donnees, doit, solde, moiQuiDois }: { donnees: D
           {moiQuiDois && (
             <ul className="mt-1 rounded-xl bg-white/60 p-2">
               <li className="flex justify-between"><span>
-                  mon revenu de référence ({conseil.debut === conseil.fin ? nomDuMois(conseil.debut) : `${nomDuMois(conseil.debut)} → ${nomDuMois(conseil.fin)}`})
-                </span><span>{formaterEuros(Math.round(conseil.revenu))}</span></li>
+                  mon <span className="font-bold">revenu de référence</span> ({conseil.debut === conseil.fin ? nomDuMois(conseil.debut) : `${nomDuMois(conseil.debut)} → ${nomDuMois(conseil.fin)}`})
+                </span><span className="font-bold">{formaterEuros(Math.round(conseil.revenu))}</span></li>
               <li className="flex justify-between"><span>− crédimmo (mois renseignés)</span><span>{formaterEuros(Math.round(conseil.credimmo))}</span></li>
               <li className="flex justify-between"><span>− mes dépenses pour le foyer{conseil.foyerEstime ? ' (estimées, pas encore de données)' : ''}</span><span>{formaterEuros(Math.round(conseil.foyer))}</span></li>
               <li className="flex justify-between"><span>− mon minimum perso{conseil.minimum === 0 ? ' (non renseigné)' : ''}</span><span>{formaterEuros(conseil.minimum)}</span></li>

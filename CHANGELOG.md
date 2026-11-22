@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (revenu de référence en gras)
+
+- **Stats, conseil de remboursement, réglages › mes revenus** : « revenu de référence » et son montant en gras partout où ils apparaissent.
+
 ## 2026-11-22 (explications repliables dans mes revenus)
 
 - **Réglages › mes revenus** : les explications sont repliées sous « 💶 revenus » et « 🤝 prêt 2bebz » (touche pour déplier) ; le texte parle du revenu de référence et du conseil de remboursement des stats.
