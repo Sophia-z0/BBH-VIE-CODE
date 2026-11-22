@@ -180,27 +180,33 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
           ))}
         </select>
       </div>
-      <p className="text-xs text-encre/60">
-        Ma part juste des dépenses suit la moyenne de mon revenu net sur les 6 derniers mois ; chaque trimestre, l'écart avec mes revenus
-        réels est reporté sur le trimestre suivant.
-        <br />
-        Mon crédimmo du mois est déduit pour calculer la part de mon revenu dépensée pour le foyer et mon minimum perso.
-      </p>
-      <p className="text-xs text-encre/60">
-        🤝 Prêt 2bebz (cases roses) : j'inscris seulement l'argent qui sort de ma poche, ce que je prête à {nomAutre} ou ce que je lui
-        rembourse.
-        <br />
-        Mon remboursement est déduit de mon revenu, comme le crédimmo ; le prêt, non.
-        {autre && (
-          <>
-            <br />
-            La ligne « reçu de {autre.display_name} » est en lecture seule : c'est {autre.display_name} qui inscrit ce qu'{autre.gender ?? 'iel'} me
-            prête ou me rembourse.
-          </>
-        )}
-        <br />
-        Le solde est dans les stats.
-      </p>
+      {/* Explications repliables, pour garder la liste des mois en vue. */}
+      <details className="text-xs text-encre/60">
+        <summary className="cursor-pointer font-semibold">💶 revenus</summary>
+        <p className="mt-1">
+          Ma part juste des dépenses suit mon revenu de référence : la moyenne de mon revenu net sur les 6 derniers mois saisis, hors
+          mois en cours ; chaque trimestre, l'écart avec mes revenus réels est reporté sur le trimestre suivant.
+          <br />
+          Mon crédimmo du mois est déduit pour calculer la part de mon revenu dépensée pour le foyer et mon minimum perso.
+        </p>
+      </details>
+      <details className="text-xs text-encre/60">
+        <summary className="cursor-pointer font-semibold">🤝 prêt 2bebz</summary>
+        <p className="mt-1">
+          Cases roses : j'inscris seulement l'argent qui sort de ma poche, ce que je prête à {nomAutre} ou ce que je lui rembourse.
+          <br />
+          Mon remboursement est déduit de mon revenu, comme le crédimmo ; le prêt, non.
+          {autre && (
+            <>
+              <br />
+              La ligne « reçu de {autre.display_name} » est en lecture seule : c'est {autre.display_name} qui inscrit ce qu'{autre.gender ?? 'iel'}{' '}
+              me prête ou me rembourse.
+            </>
+          )}
+          <br />
+          Le solde et un conseil de remboursement sont dans les stats.
+        </p>
+      </details>
       <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
         <span className="text-sm">ma moyenne {annee}</span>
         <span className="text-right">
