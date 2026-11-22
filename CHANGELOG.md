@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (prêts lisibles dans les réglages)
+
+- **Réglages › mes revenus** : sous chaque mois, les prêts sont séparés du revenu et du crédimmo par un trait pointillé, avec des cases roses. « 📤 à [l'autre] » pour ce qui sort de ma poche, « 📥 de [l'autre] » pour ce que l'autre a inscrit : case grisée, mais montant en orange gras.
+
 ## 2026-11-22 (prêts de l'autre visibles dans les réglages)
 
 - **Réglages › mes revenus** : sous « 🤝 à [l'autre] » (mes cases), une ligne grisée « 🤝 de [l'autre] » montre, en lecture seule, ce que l'autre a prêté ou remboursé ce mois-là (seulement les mois où il y a quelque chose). Le solde reste dans les stats.
