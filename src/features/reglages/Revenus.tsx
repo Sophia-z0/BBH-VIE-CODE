@@ -187,7 +187,8 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
           Ma part juste des dépenses suit mon <span className="font-bold">revenu de référence</span> : la moyenne de mon revenu net sur les 6 derniers mois saisis, hors
           mois en cours ; chaque trimestre, l'écart avec mes revenus réels est reporté sur le trimestre suivant.
           <br />
-          Mon crédimmo du mois est déduit pour calculer la part de mon revenu dépensée pour le foyer et mon minimum perso.
+          Mon crédimmo est retiré de mon revenu pour calculer quelle part de ce qui me reste part dans le foyer, et ce qui me reste après le
+          foyer (minimum perso). Il ne change pas la répartition des dépenses.
         </p>
       </details>
       <details className="text-xs text-encre/60">

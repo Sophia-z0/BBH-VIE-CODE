@@ -6,6 +6,7 @@ sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 ## 2026-11-22 (revenu de référence en gras)
 
 - **Stats, conseil de remboursement, réglages › mes revenus** : « revenu de référence » et son montant en gras partout où ils apparaissent.
+- **Réglages › mes revenus › 💶 revenus** : explication du crédimmo reformulée (il ne change pas la répartition des dépenses).
 
 ## 2026-11-22 (explications repliables dans mes revenus)
 
