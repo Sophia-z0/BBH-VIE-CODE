@@ -20,7 +20,8 @@ import {
 } from '../../domain/stats'
 import { formaterEuros } from '../../lib/argent'
 import { PhraseReport } from '../../components/PhraseReport'
-import { soldePrets, type Pret } from '../../domain/prets'
+import { conseilRemboursement } from '../../domain/conseilPret'
+import { soldePrets } from '../../domain/prets'
 import { cleMois, contexteRevenus, deductions, moyennesRevenu, nomDuMois, partDuMois, reportPour, trimestreDe } from '../../domain/revenus'
 import { useFoyerPret } from '../foyer/FoyerContext'
 import { useDonneesStats, type DonneesStats } from './useDonneesStats'
@@ -243,7 +244,7 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
           )
         })}
       </div>
-      <PretsDuFoyer prets={donnees.prets} />
+      <PretsDuFoyer donnees={donnees} />
       <SousTitre>part du revenu dépensée pour le foyer</SousTitre>
       {mois.length === 0 ? (
         <p className="text-sm text-encre/60">Le premier mois complet s'affichera ici une fois terminé et révélé.</p>
@@ -275,8 +276,9 @@ function RevenusDuFoyer({ donnees }: { donnees: DonneesStats }) {
 }
 
 /** Prêt 2bebz : qui doit combien à qui, puis l'historique mois par mois (visible par les deux). */
-function PretsDuFoyer({ prets }: { prets: Pret[] }) {
-  const { membres } = useFoyerPret()
+function PretsDuFoyer({ donnees }: { donnees: DonneesStats }) {
+  const { moi, membres } = useFoyerPret()
+  const { prets } = donnees
   if (prets.length === 0) return null
   const solde = soldePrets(membres, prets)
   const personne = (id: string) => membres.find((m) => m.id === id)
@@ -309,7 +311,61 @@ function PretsDuFoyer({ prets }: { prets: Pret[] }) {
             ))}
         </ul>
       </details>
+      {solde && <ConseilRemboursement donnees={donnees} doit={solde.doit} solde={solde.montant} moiQuiDois={solde.doit.id === moi.id} />}
     </div>
+  )
+}
+
+/**
+ * Conseil : trois rythmes de virement mensuel pour solder le prêt, d'après la marge de la personne qui doit.
+ * Le détail du calcul (et la part de la marge) n'est montré qu'à elle : il révélerait son minimum perso.
+ */
+function ConseilRemboursement({ donnees, doit, solde, moiQuiDois }: { donnees: DonneesStats; doit: Profil; solde: number; moiQuiDois: boolean }) {
+  const conseil = conseilRemboursement(doit, solde, donnees.revenus, donnees.depenses)
+  const sujet = moiQuiDois ? 'je' : doit.display_name
+  const ses = moiQuiDois ? 'mes' : 'ses'
+  const son = moiQuiDois ? 'mon' : 'son'
+  return (
+    <details className="text-xs text-encre/60">
+      <summary className="cursor-pointer">conseil</summary>
+      {conseil.type === 'sans-revenu' ? (
+        <p className="mt-1">Pas de revenu saisi ces 6 derniers mois : le conseil s'affichera une fois {son} revenu renseigné.</p>
+      ) : conseil.rythmes.length === 0 ? (
+        <p className="mt-1">Pas de marge ces derniers mois : mieux vaut attendre ou en parler ensemble 💬</p>
+      ) : (
+        <div className="mt-1 flex flex-col gap-1">
+          <p className="text-encre/80">
+            Pour rembourser les {formaterEuros(solde)}, {sujet} {moiQuiDois ? 'peux' : 'peut'} virer chaque mois :
+          </p>
+          <ul>
+            {conseil.rythmes.map((r) => (
+              <li key={r.cle} className="flex justify-between gap-2">
+                <span>
+                  {r.emoji} {r.cle === 'equilibre' ? 'équilibré' : r.cle}
+                  {moiQuiDois && <span className="text-encre/40"> (≈ {pourcent(r.part)} de ma marge)</span>}
+                </span>
+                <span className="font-semibold text-encre/80">
+                  {formaterEuros(r.mensualite)} / mois → {r.duree} mois
+                </span>
+              </li>
+            ))}
+          </ul>
+          {moiQuiDois && (
+            <ul className="mt-1 rounded-xl bg-white/60 p-2">
+              <li className="flex justify-between"><span>mon revenu net</span><span>{formaterEuros(Math.round(conseil.revenu))}</span></li>
+              <li className="flex justify-between"><span>− crédimmo</span><span>{formaterEuros(Math.round(conseil.credimmo))}</span></li>
+              <li className="flex justify-between"><span>− mes dépenses pour le foyer</span><span>{formaterEuros(Math.round(conseil.foyer))}</span></li>
+              <li className="flex justify-between"><span>− mon minimum perso{conseil.minimum === 0 ? ' (non renseigné)' : ''}</span><span>{formaterEuros(conseil.minimum)}</span></li>
+              <li className="flex justify-between font-semibold"><span>= ma marge par mois</span><span>{formaterEuros(Math.round(conseil.marge))}</span></li>
+            </ul>
+          )}
+          <p>
+            Calculé sur {ses} {conseil.nbMois < 6 ? `${conseil.nbMois} derniers mois seulement` : '6 derniers mois'} : revenu, crédimmo et part du foyer. En respectant{' '}
+            {son} minimum perso. À ajuster ensemble 💬
+          </p>
+        </div>
+      )}
+    </details>
   )
 }
 

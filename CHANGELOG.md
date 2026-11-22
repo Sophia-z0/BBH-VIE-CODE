@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (conseil de remboursement du prêt 2bebz)
+
+- **Stats › 🤝 prêt 2bebz › conseil** (sous l'historique) : trois rythmes de virement mensuel pour solder le prêt (🐢 tranquille, 🤝 équilibré, 🚀 rapide : 10 / 20 / 35 % de la marge, arrondis à la dizaine), avec la durée. Marge = moyennes des 6 derniers mois terminés (revenu net − crédimmo − dépenses pour le foyer) − minimum perso. Les deux voient les rythmes ; seule la personne qui doit voit le détail et les pourcentages (ils révéleraient son minimum perso).
+
 ## 2026-11-22 (réglages à la première personne)
 
 - **Réglages › mon profil** : couleur dans un menu dépliable discret (pastille actuelle, palette au toucher) ; libellés accordés : « mon prénom », « ma couleur », « mon pronom », « mon revenu mensuel habituel », « ma moyenne », « 🔔 mes notifications ». Les explications passent à la première personne ; messages d'encouragement, notifications et dos de cartes restent l'app qui s'adresse à nous.
