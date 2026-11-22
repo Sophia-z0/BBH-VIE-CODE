@@ -6,6 +6,7 @@ import type { RevenuMensuel } from '../../domain/types'
 import { formaterEuros, lireMontant } from '../../lib/argent'
 import { messageErreur } from '../../lib/erreurs'
 import { enregistrerPret, listerPrets } from '../../services/prets'
+import { useFoyerPret } from '../foyer/FoyerContext'
 import { enregistrerCredit, enregistrerRevenu, mesRevenus } from '../../services/revenus'
 
 /** Mes revenus saisis ; null tant que ce n'est pas chargé ou si la table n'existe pas encore (migration 0011). */
@@ -94,6 +95,8 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
   const [annee, setAnnee] = useState(anneeActuelle)
   const [message, setMessage] = useState<string | null>(null)
   const [prets, setPrets] = useState<Pret[]>([])
+  const { membres } = useFoyerPret()
+  const autre = membres.find((m) => m.id !== idMoi)
   useEffect(() => {
     let annule = false
     listerPrets().then((liste) => !annule && setPrets(liste))
@@ -184,6 +187,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
       <p className="text-xs text-encre/60">
         🤝 Prêt 2bebz : on inscrit seulement l'argent qui sort de sa poche, ce que tu prêtes à l'autre ou ce que tu lui rembourses.
         L'autre n'inscrit rien pour le même mouvement. Le remboursement est déduit de ton revenu, comme le crédimmo ; le prêt, non.
+        {autre && ` La ligne « de ${autre.display_name} » est en lecture seule : c'est ${autre.display_name} qui inscrit ce qu'${autre.gender ?? 'iel'} te prête ou te rembourse.`}{' '}
         Le solde est dans les stats.
       </p>
       <div className="flex items-baseline justify-between rounded-2xl bg-white px-4 py-3">
@@ -228,7 +232,7 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
             </div>
             {/* Prêt 2bebz : indépendant du revenu, saisissable même sans revenu ce mois-là. */}
             <div className="flex items-center gap-2 text-xs text-encre/60">
-              <span className="min-w-0 flex-1">🤝 à l'autre</span>
+              <span className="min-w-0 flex-1">🤝 à {autre?.display_name ?? "l'autre"}</span>
               {(['pret', 'remboursement'] as const).map((nature) => (
                 <input
                   key={`${nature}-${montantPret(idMoi, prets, mois, nature) ?? 'vide'}`}
@@ -241,6 +245,24 @@ export function HistoriqueRevenus({ idMoi }: { idMoi: string }) {
                 />
               ))}
             </div>
+            {/* Ce que l'autre a inscrit ce mois-là (argent sorti de sa poche) : lecture seule. */}
+            {autre && (['pret', 'remboursement'] as const).some((n) => montantPret(autre.id, prets, mois, n) !== undefined) && (
+              <div className="flex items-center gap-2 text-xs text-encre/40">
+                <span className="min-w-0 flex-1">🤝 de {autre.display_name}</span>
+                {(['pret', 'remboursement'] as const).map((nature) => {
+                  const montant = montantPret(autre.id, prets, mois, nature)
+                  return (
+                    <span
+                      key={nature}
+                      aria-label={`${nature === 'pret' ? 'prêt' : 'remboursement'} de ${autre.display_name} en ${nomDuMois(mois)}`}
+                      className={`${nature === 'pret' ? 'w-24' : 'w-20'} px-2 py-1 text-right`}
+                    >
+                      {montant === undefined ? '—' : formaterEuros(montant)}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
           </li>
         ))}
       </ul>

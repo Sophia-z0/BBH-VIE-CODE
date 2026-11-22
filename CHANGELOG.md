@@ -3,6 +3,10 @@
 Chaque entrée : ce qui a changé, pourquoi, et où c'est visible. Les règles du jeu et les étapes
 sont dans `PLAN.md`, l'installation et le déploiement dans `README.md`.
 
+## 2026-11-22 (prêts de l'autre visibles dans les réglages)
+
+- **Réglages › mes revenus** : sous « 🤝 à [l'autre] » (mes cases), une ligne grisée « 🤝 de [l'autre] » montre, en lecture seule, ce que l'autre a prêté ou remboursé ce mois-là (seulement les mois où il y a quelque chose). Le solde reste dans les stats.
+
 ## 2026-11-21 (course à la date du ticket)
 
 - **Courses + ticket** : quand on scanne le ticket juste après une tâche de courses, la tâche prend la date et l'heure du ticket (si elle est dans la semaine en cours), pour rester sur le même jour que sa dépense dans le calendrier, toujours reliée par 🔗. Les étoiles ne changent pas.
